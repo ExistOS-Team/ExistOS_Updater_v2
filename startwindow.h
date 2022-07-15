@@ -9,6 +9,8 @@
 #define UPDATE_SYSTEM 1
 #define UPDATE_OSLOADER 2
 
+#define MAX_PAGE 65536
+
 //define texts
 constexpr auto VERSION                           =     " ver 1.0.1";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
@@ -34,6 +36,7 @@ constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISC
 #include <QIcon>
 #include <QTextCodec>
 #include <QMessageBox>
+#include <QFileInfo>
 
 #include <about.h>
 #include <updatewindow.h>

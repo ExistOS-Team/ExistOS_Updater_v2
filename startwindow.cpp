@@ -44,12 +44,28 @@ startWindow::~startWindow()
 void startWindow::on_button_OSLoader_path_clicked()
 {
 	ui->OSLoader_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("OS Loader File(*.sb)")));
+	if (ui->OSLoader_path->text() != "") {
+		QFileInfo* info = new QFileInfo(ui->OSLoader_path->text());
+		if (info->size() > (page_System - page_OSLoader) * 2112) {
+			QMessageBox::critical(this, " ", "This OSLoader file is too large to flash.");
+			ui->OSLoader_path->clear();
+		}
+		delete info;
+	}
 }
 
 
 void startWindow::on_button_System_path_clicked()
 {
 	ui->System_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("System File(*.sys)")));
+	if (ui->System_path->text() != "") {
+		QFileInfo* info = new QFileInfo(ui->System_path->text());
+		if (info->size() > (MAX_PAGE - page_System) * 2112) {
+			QMessageBox::critical(this, " ", "This System file is too large to flash.");
+			ui->System_path->clear();
+		}
+		delete info;
+	}
 }
 
 void startWindow::on_pushButton_about_clicked()

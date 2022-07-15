@@ -44,7 +44,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Flash to page:</string>
+       <string>Flash page:</string>
       </property>
      </widget>
     </item>
@@ -59,8 +59,11 @@
       </item>
       <item>
        <widget class="QSpinBox" name="spinBox_OSLoader_Page">
+        <property name="minimum">
+         <number>1</number>
+        </property>
         <property name="maximum">
-         <number>65535</number>
+         <number>999999999</number>
         </property>
        </widget>
       </item>
@@ -77,8 +80,11 @@
       </item>
       <item>
        <widget class="QSpinBox" name="spinBox_System_Page">
+        <property name="minimum">
+         <number>1</number>
+        </property>
         <property name="maximum">
-         <number>65535</number>
+         <number>999999999</number>
         </property>
        </widget>
       </item>
