@@ -2,7 +2,7 @@
 #define STARTWINDOW_H
 
 #define UNCONNECT_MODE 0
-#define RECOVERY_MODE 1
+#define HOSTLINK_MODE 1
 #define EDB_TEXT 2
 #define EDB_BIN 3
 
@@ -11,10 +11,13 @@
 
 #define MAX_PAGE 65536
 
+#define HOSTLINK_VID 0x066F
+#define HOSTLINK_PID 0x3770
+
 //define texts
-constexpr auto VERSION                           =     " ver 1.0.1";
+constexpr auto VERSION                           =     " ver 1.0.2";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
-constexpr auto TEXT_DEVICE_CONNECTED_RECOVERY    =     "Device Connected [Recovery]";
+constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [Bin Mode EDB]";
 constexpr auto TEXT_SEARCHING                    =     "Searching for Devices...";
@@ -29,6 +32,8 @@ constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISC
 #include "edb/EDBInterface.h"
 //
 
+#include <libusb/libusb.h>
+
 #include <QMainWindow>
 #include <QGraphicsScene>
 #include <QPixmap>
@@ -37,6 +42,9 @@ constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISC
 #include <QTextCodec>
 #include <QMessageBox>
 #include <QFileInfo>
+#include <QProcess>
+#include <QByteArray>
+#include <QFile>
 
 #include <about.h>
 #include <updatewindow.h>
@@ -76,7 +84,7 @@ private:
 
     const QStringList link_texts = {
         TEXT_DEVICE_DISCONNECTED,
-        TEXT_DEVICE_CONNECTED_RECOVERY,
+        TEXT_DEVICE_CONNECTED_HOSTLINK,
         TEXT_DEVICE_CONNECTED_EDB_TEXT,
         TEXT_DEVICE_CONNECTED_EDB_BIN
     };
@@ -87,6 +95,12 @@ private:
     //
 
     bool startUpdate(const QList<int> &work);
+
+    void setButtonStatus(const bool& O, const bool& S, const bool& OandS);
+
+    bool searchRecoveryModeDevice();
+    void openProcess(const QString& path, const QStringList& argu);
+    QProcess* process = new QProcess(this);
 
 private slots:
     void on_button_OSLoader_path_clicked();
@@ -99,5 +113,6 @@ private slots:
     void on_pushButton_update_OandS_clicked();
 
     void getReturnData(int OSLoader, int System, int edb);
+    void readResult(int exitCode);
 };
 #endif // STARTWINDOW_H

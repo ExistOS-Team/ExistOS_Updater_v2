@@ -49,7 +49,7 @@ Thumbs.db
 *.ib_pdb_index
 *.idb
 *.ilk
-*.pdb
+# *.pdb
 *.sln
 *.suo
 *.vcproj
@@ -72,6 +72,6 @@ Thumbs.db
 
 # Binaries
 # --------
-*.dll
-*.exe
+# *.dll
+# *.exe
 

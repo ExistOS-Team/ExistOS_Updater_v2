@@ -27,10 +27,13 @@ startWindow::startWindow(QWidget* parent)
 
 	connect(optionsWindow, SIGNAL(returnData(int, int, int)), this, SLOT(getReturnData(int, int, int)));
 
+	libusb_init(nullptr);	//init libusb
 }
 
 startWindow::~startWindow()
 {
+	QFile::remove("./sb_loader.exe");		//for virtual box ONLY! Disable it when debugging!
+
 	delete ui;
 	delete image_OSLoader;
 	delete image_OSLoader_System;
@@ -39,6 +42,31 @@ startWindow::~startWindow()
 	delete updWindow;
 	delete optionsWindow;
 	delete waitWindow;
+	delete process;
+
+	libusb_exit(nullptr);	//exit libusb
+}
+
+bool startWindow::searchRecoveryModeDevice() {
+	struct libusb_device* dev = nullptr;
+	struct libusb_device_handle *dev_hdl = nullptr;
+	struct libusb_device_descriptor dev_dsp;
+	bool isFound = true;
+
+	dev_hdl = libusb_open_device_with_vid_pid(nullptr, HOSTLINK_VID, HOSTLINK_PID);
+
+	if (dev_hdl != nullptr) {
+		dev = libusb_get_device(dev_hdl);
+		if (libusb_get_device_descriptor(dev, &dev_dsp) != 0) {
+			isFound = false;
+		}
+	}
+	else {
+		isFound = false;
+	}
+
+	libusb_close(dev_hdl);
+	return isFound;
 }
 
 void startWindow::on_button_OSLoader_path_clicked()
@@ -85,32 +113,36 @@ void startWindow::on_pushButton_refresh_clicked()
 	ui->pushButton_refresh->setDisabled(true);
 	waitWindow->show();
 
+	if (searchRecoveryModeDevice()) {
+		link_mode = HOSTLINK_MODE;
+	}
+	else {
 
+		switch (edbMode)
+		{
+		case EDB_BIN:
 
-	switch (edbMode)
-	{
-	case EDB_BIN:
+			if (edb.open(EDB_MODE_BIN)) {
+				link_mode = EDB_BIN;
+				edb.close();
+			}
+			else {
+				link_mode = UNCONNECT_MODE;
+			}
+			break;
+		case EDB_TEXT:
 
-		if (edb.open(EDB_MODE_BIN)) {
-			link_mode = EDB_BIN;
-			edb.close();
+			if (edb.open(EDB_MODE_TEXT)) {
+				link_mode = EDB_TEXT;
+				edb.close();
+			}
+			else {
+				link_mode = UNCONNECT_MODE;
+			}
+			break;
+		default:
+			break;
 		}
-		else {
-			link_mode = UNCONNECT_MODE;
-		}
-		break;
-	case EDB_TEXT:
-
-		if (edb.open(EDB_MODE_TEXT)) {
-			link_mode = EDB_TEXT;
-			edb.close();
-		}
-		else {
-			link_mode = UNCONNECT_MODE;
-		}
-		break;
-	default:
-		break;
 	}
 
 	ui->lineEdit_status->setText(link_texts[link_mode]);
@@ -118,24 +150,16 @@ void startWindow::on_pushButton_refresh_clicked()
 	switch (link_mode)
 	{
 	case UNCONNECT_MODE:
-		ui->pushButton_update_O->setDisabled(true);
-		ui->pushButton_update_OandS->setDisabled(true);
-		ui->pushButton_update_S->setDisabled(true);
+		setButtonStatus(false, false, false);
 		break;
-	case RECOVERY_MODE:
-		ui->pushButton_update_O->setEnabled(true);
-		ui->pushButton_update_OandS->setEnabled(true);
-		ui->pushButton_update_S->setEnabled(true);
+	case HOSTLINK_MODE:
+		setButtonStatus(true, true, true);
 		break;
 	case EDB_TEXT:
-		ui->pushButton_update_O->setDisabled(true);
-		ui->pushButton_update_OandS->setDisabled(true);
-		ui->pushButton_update_S->setDisabled(true);
+		setButtonStatus(false, false, false);
 		break;
 	case EDB_BIN:
-		ui->pushButton_update_O->setEnabled(true);
-		ui->pushButton_update_OandS->setEnabled(true);
-		ui->pushButton_update_S->setEnabled(true);
+		setButtonStatus(true, true, true);
 		break;
 	default:
 		break;
@@ -145,11 +169,31 @@ void startWindow::on_pushButton_refresh_clicked()
 	ui->pushButton_refresh->setEnabled(true);
 }
 
+void startWindow::setButtonStatus(const bool& O, const bool& S, const bool& OandS)
+{
+	ui->pushButton_update_O->setEnabled(O);
+	ui->pushButton_update_OandS->setEnabled(S);
+	ui->pushButton_update_S->setEnabled(OandS);
+}
+
 void startWindow::getReturnData(int OSLoader, int System, int edb) {
 	page_OSLoader = OSLoader;
 	page_System = System;
 	edbMode = edb;
 }
+
+void startWindow::openProcess(const QString& path, const QStringList& argu) {
+		process->start(path, argu);
+		connect(process, SIGNAL(finished(int)), this, SLOT(readResult(int)));
+}
+
+void startWindow::readResult(int exitCode) {
+	//QByteArray result;
+	//result = process->readAll();
+	//updWindow->addLine(QString::fromLocal8Bit(result));
+	process->close();
+}
+
 
 bool startWindow::startUpdate(const QList<int>& work)
 {
@@ -157,11 +201,32 @@ bool startWindow::startUpdate(const QList<int>& work)
 	updWindow->show();
 	updWindow->addLine("Start update...");
 
+	QStringList argu;
+
 	for (int i = 0; i < work.size(); i++) {
 		switch (link_mode)
 		{
 		case 1:     //recovery mode
-
+			argu.append("-f");
+			argu.append(ui->OSLoader_path->text());
+			updWindow->addLine("Sending OSLoader to calculator RAM...");
+			//openProcess(QDir::currentPath() + "/tool/sb_loader.exe", argu);
+			openProcess( "./sb_loader.exe", argu);
+			updWindow->addLine("Reboot and reconnect...");
+			Sleep(5000);	//reboot interval
+			on_pushButton_refresh_clicked();
+			if (link_mode == EDB_BIN) {
+				if (work[0] != UPDATE_OSLOADER) {
+					startUpdate({ UPDATE_OSLOADER, UPDATE_SYSTEM });
+				}
+				else
+				{
+					startUpdate(work);
+				}
+			}
+			else {
+				return false;
+			}
 			break;
 		case 3:     //edb bin mode
 			flashImg item;
@@ -252,7 +317,6 @@ bool startWindow::startUpdate(const QList<int>& work)
 	return true;
 }
 
-
 void startWindow::on_pushButton_update_O_clicked()
 {
 	if (ui->OSLoader_path->text() == "") {
@@ -260,7 +324,7 @@ void startWindow::on_pushButton_update_O_clicked()
 	}
 	else {
 		if (startUpdate({ UPDATE_OSLOADER })) {
-			QMessageBox::information(this, " ", "Update OSLoader successfully.");
+			QMessageBox::information(this, " ", "Update device successfully.");
 		}
 		else {
 			QMessageBox::critical(this, " ", "An error occurred while updating device.");
@@ -272,12 +336,19 @@ void startWindow::on_pushButton_update_O_clicked()
 
 void startWindow::on_pushButton_update_S_clicked()
 {
+	if (link_mode == HOSTLINK_MODE) {
+		if (ui->OSLoader_path->text() == "") {
+			QMessageBox::information(this, " ", "In HostLink mode,\nyou need to select an OSLoder file for updating.");
+			return;
+		}
+	}
+
 	if (ui->System_path->text() == "") {
 		QMessageBox::critical(this, " ", "You have to select a file for System first.");
 	}
 	else {
 		if (startUpdate({ UPDATE_SYSTEM })) {
-			QMessageBox::information(this, " ", "Update System successfully.");
+			QMessageBox::information(this, " ", "Update device successfully.");
 		}
 		else {
 			QMessageBox::critical(this, " ", "An error occurred while updating device.");
@@ -289,7 +360,10 @@ void startWindow::on_pushButton_update_S_clicked()
 
 void startWindow::on_pushButton_update_OandS_clicked()
 {
-
+	if (link_mode == HOSTLINK_MODE) {
+		on_pushButton_update_S_clicked();
+		return;
+	}
 
 	if (ui->OSLoader_path->text() == "") {
 		QMessageBox::critical(this, " ", "You have to select a file for OSLoader first.");
@@ -300,7 +374,7 @@ void startWindow::on_pushButton_update_OandS_clicked()
 		}
 		else {
 			if (startUpdate({ UPDATE_OSLOADER, UPDATE_SYSTEM })) {
-				QMessageBox::information(this, " ", "Update OSLoader & System successfully.");
+				QMessageBox::information(this, " ", "Update device successfully.");
 			}
 			else {
 				QMessageBox::critical(this, " ", "An error occurred while updating device.");
