@@ -12,9 +12,14 @@ startWindow::startWindow(QWidget* parent)
 	setWindowTitle("ExistOS Updater");
 	setWindowIcon(QIcon("image/icon.png"));
 
-	image_OSLoader->addPixmap(QPixmap("D:/Projects/ExistOS_Updater_v2/image/update_OSLoader.bmp").scaled(64, 64));
-	image_System->addPixmap(QPixmap("D:/Projects/ExistOS_Updater_v2/image/update_System.bmp").scaled(64, 64));
-	image_OSLoader_System->addPixmap(QPixmap("D:/Projects/ExistOS_Updater_v2/image/update_OSLoader_System.bmp").scaled(64, 64));
+	QFileInfo sb_info("sb_loader.exe");
+	if (!sb_info.isFile()) {
+		QMessageBox::critical(this, " ", "Can not find sb_loader.exe!");
+	}
+
+	image_OSLoader->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader.bmp").scaled(64, 64));
+	image_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_System.bmp").scaled(64, 64));
+	image_OSLoader_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader_System.bmp").scaled(64, 64));
 	ui->graphicsView_O->setScene(image_OSLoader);
 	ui->graphicsView_S->setScene(image_System);
 	ui->graphicsView_OandS->setScene(image_OSLoader_System);
@@ -32,7 +37,7 @@ startWindow::startWindow(QWidget* parent)
 
 startWindow::~startWindow()
 {
-	QFile::remove("./sb_loader.exe");		//for virtual box ONLY! Disable it when debugging!
+	QFile::remove("sb_loader.exe");		//for virtual box ONLY! Disable it when debugging!
 
 	delete ui;
 	delete image_OSLoader;
@@ -210,11 +215,11 @@ bool startWindow::startUpdate(const QList<int>& work)
 			argu.append("-f");
 			argu.append(ui->OSLoader_path->text());
 			updWindow->addLine("Sending OSLoader to calculator RAM...");
-			//openProcess(QDir::currentPath() + "/tool/sb_loader.exe", argu);
-			openProcess( "./sb_loader.exe", argu);
-			updWindow->addLine("Reboot and reconnect...");
-			Sleep(5000);	//reboot interval
-			on_pushButton_refresh_clicked();
+			openProcess( "sb_loader.exe", argu);
+			updWindow->addLine("Reboot and reconnect... ");
+			updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
+			Sleep(REBOOT_INTERVAL);	//reboot interval
+			on_pushButton_refresh_clicked(); //reconnect
 			if (link_mode == EDB_BIN) {
 				if (work[0] != UPDATE_OSLOADER) {
 					startUpdate({ UPDATE_OSLOADER, UPDATE_SYSTEM });
@@ -309,7 +314,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 			break;
 		}
 
-		Sleep(2000);
+		Sleep(3000);
 		on_pushButton_refresh_clicked();
 	}
 
@@ -323,6 +328,7 @@ void startWindow::on_pushButton_update_O_clicked()
 		QMessageBox::critical(this, " ", "You have to select a file for OSLoader first.");
 	}
 	else {
+		setButtonStatus(false, false, false);
 		if (startUpdate({ UPDATE_OSLOADER })) {
 			QMessageBox::information(this, " ", "Update device successfully.");
 		}
@@ -347,6 +353,7 @@ void startWindow::on_pushButton_update_S_clicked()
 		QMessageBox::critical(this, " ", "You have to select a file for System first.");
 	}
 	else {
+		setButtonStatus(false, false, false);
 		if (startUpdate({ UPDATE_SYSTEM })) {
 			QMessageBox::information(this, " ", "Update device successfully.");
 		}
@@ -373,6 +380,7 @@ void startWindow::on_pushButton_update_OandS_clicked()
 			QMessageBox::critical(this, " ", "You have to select a file for System first.");
 		}
 		else {
+			setButtonStatus(false, false, false);
 			if (startUpdate({ UPDATE_OSLOADER, UPDATE_SYSTEM })) {
 				QMessageBox::information(this, " ", "Update device successfully.");
 			}
