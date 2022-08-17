@@ -17,7 +17,7 @@
 #define REBOOT_INTERVAL 6000
 
 //define texts
-constexpr auto VERSION                           =     " ver 1.0.2";
+constexpr auto VERSION                           =     " ver 1.0.2.1";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";
