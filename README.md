@@ -1,3 +1,5 @@
 ![icon](image/icon.png)
 
-## An Updater for ExistOS on HP39Gii
+# ExistOS Updater for HP39gII Calculator
+
+![screenshot](image/screenshot1.png)
