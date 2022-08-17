@@ -193,6 +193,7 @@ void startWindow::openProcess(const QString& path, const QStringList& argu) {
 }
 
 void startWindow::readResult(int exitCode) {
+	//QMessageBox::information(this, " ", "exitCode=" + QString::number(exitCode));
 	//QByteArray result;
 	//result = process->readAll();
 	//updWindow->addLine(QString::fromLocal8Bit(result));
@@ -217,9 +218,14 @@ bool startWindow::startUpdate(const QList<int>& work)
 			updWindow->addLine("Sending OSLoader to calculator RAM...");
 			openProcess( "sb_loader.exe", argu);
 			updWindow->addLine("Reboot and reconnect... ");
-			updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
-			Sleep(REBOOT_INTERVAL);	//reboot interval
-			on_pushButton_refresh_clicked(); //reconnect
+			//updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
+
+			for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
+				Sleep(REBOOT_INTERVAL);	//reboot interval
+				on_pushButton_refresh_clicked(); //reconnect
+				if (link_mode == EDB_BIN) break;
+			}
+
 			if (link_mode == EDB_BIN) {
 				if (work[0] != UPDATE_OSLOADER) {
 					startUpdate({ UPDATE_OSLOADER, UPDATE_SYSTEM });
@@ -314,8 +320,11 @@ bool startWindow::startUpdate(const QList<int>& work)
 			break;
 		}
 
-		Sleep(3000);
-		on_pushButton_refresh_clicked();
+		for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
+			Sleep(3000);
+			on_pushButton_refresh_clicked();
+			if (link_mode == EDB_BIN) break;
+		}
 	}
 
 	updWindow->addLine("Done!");

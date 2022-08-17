@@ -14,7 +14,8 @@
 #define HOSTLINK_VID 0x066F
 #define HOSTLINK_PID 0x3770
 
-#define REBOOT_INTERVAL 6000
+#define REBOOT_INTERVAL 5000
+#define REBOOT_RETRY_TIME 3
 
 //define texts
 constexpr auto VERSION                           =     " ver 1.0.2.1";
