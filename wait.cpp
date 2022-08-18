@@ -6,11 +6,15 @@ wait::wait(QWidget *parent) :
     ui(new Ui::wait)
 {
     ui->setupUi(this);
-    this->resize(QSize(320, 0));
     setWindowTitle("Searching for Devices...");
+    setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint);
 }
 
 wait::~wait()
 {
     delete ui;
+}
+
+void wait::refresh() {
+    qApp->processEvents();
 }

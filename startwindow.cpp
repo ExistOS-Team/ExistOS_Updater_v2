@@ -113,10 +113,10 @@ void startWindow::on_pushButton_options_clicked()
 	optionsWindow->exec();
 }
 
-void startWindow::on_pushButton_refresh_clicked()
-{
+int startWindow::searchForDevices() {
 	ui->pushButton_refresh->setDisabled(true);
 	waitWindow->show();
+	waitWindow->refresh();
 
 	if (searchRecoveryModeDevice()) {
 		link_mode = HOSTLINK_MODE;
@@ -172,6 +172,13 @@ void startWindow::on_pushButton_refresh_clicked()
 
 	waitWindow->hide();
 	ui->pushButton_refresh->setEnabled(true);
+
+	return link_mode;
+}
+
+void startWindow::on_pushButton_refresh_clicked()
+{
+	searchForDevices();
 }
 
 void startWindow::setButtonStatus(const bool& O, const bool& S, const bool& OandS)
@@ -222,8 +229,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 
 			for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
 				Sleep(REBOOT_INTERVAL);	//reboot interval
-				on_pushButton_refresh_clicked(); //reconnect
-				if (link_mode == EDB_BIN) break;
+				if (searchForDevices() == EDB_BIN) break;
 			}
 
 			if (link_mode == EDB_BIN) {
@@ -322,8 +328,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 
 		for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
 			Sleep(3000);
-			on_pushButton_refresh_clicked();
-			if (link_mode == EDB_BIN) break;
+			if (searchForDevices() == EDB_BIN) break;
 		}
 	}
 
@@ -346,7 +351,7 @@ void startWindow::on_pushButton_update_O_clicked()
 		}
 	}
 	updWindow->hide();
-	on_pushButton_refresh_clicked();
+	searchForDevices();
 }
 
 void startWindow::on_pushButton_update_S_clicked()
@@ -371,7 +376,7 @@ void startWindow::on_pushButton_update_S_clicked()
 		}
 	}
 	updWindow->hide();
-	on_pushButton_refresh_clicked();
+	searchForDevices();
 }
 
 void startWindow::on_pushButton_update_OandS_clicked()
@@ -400,5 +405,5 @@ void startWindow::on_pushButton_update_OandS_clicked()
 		}
 	}
 	updWindow->hide();
-	on_pushButton_refresh_clicked();
+	searchForDevices();
 }

@@ -13,6 +13,9 @@ class wait : public QDialog
 
 public:
     explicit wait(QWidget *parent = nullptr);
+
+    void refresh();
+
     ~wait();
 
 private:

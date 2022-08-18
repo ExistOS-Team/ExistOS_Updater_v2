@@ -102,6 +102,9 @@ private:
     void setButtonStatus(const bool& O, const bool& S, const bool& OandS);
 
     bool searchRecoveryModeDevice();
+
+    int searchForDevices();
+
     void openProcess(const QString& path, const QStringList& argu);
     QProcess* process = new QProcess(this);
 
