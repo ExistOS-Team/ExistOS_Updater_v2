@@ -12,7 +12,7 @@ If not, please download from [here](https://docs.microsoft.com/en-US/cpp/windows
 
 此程序支持Windows10（1809或更高版本）和Windows11。
 
-如果此程序没有正常运行，请检查MSCV运行时库是否已经安装在您的计算机上。
+如果此程序没有正常运行，请检查MSVC运行时库是否已经安装在您的计算机上。
 
 如果没有，请从[这里](https://docs.microsoft.com/zh-CN/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
 
