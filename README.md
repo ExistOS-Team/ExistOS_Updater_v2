@@ -26,12 +26,16 @@ If not, please download from [here](https://docs.microsoft.com/en-US/cpp/windows
 
 ### EDB Mode
 
-在已经刷入过OSLoader的39gII上可以使用此模式。
+- 在已经刷入过OSLoader的39gII上可以使用此模式。
 
-要使用此模式，只需正常开机连接电脑便可使用此程序刷写设备。
+- 要使用此模式，只需正常开机连接电脑便可使用此程序刷写设备。
 
 ### HostLink Mode
 
-在任何39gII上都可使用此模式。如您可以在此模式下刷写安装了官方系统的39gII。也可作为救砖的方法之一。
+- 在任何39gII上都可使用此模式。如您可以在此模式下刷写安装了官方系统的39gII。也可作为救砖的方法之一。
 
-要使用此模式，请按住`ON/C`键将计算器连接至电脑，然后便可以使用此程序刷写设备。
+- 要使用此模式，请按住`ON/C`键将计算器连接至电脑，然后便可以使用此程序刷写设备。
+
+## 固件下载
+
+- 请移步至[ExistOS-For-HP39GII仓库](https://github.com/ExistOS-Team/ExistOS-For-HP39GII)的Releases页面。
