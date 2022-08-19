@@ -18,7 +18,7 @@
 #define REBOOT_RETRY_TIME 3
 
 //define texts
-constexpr auto VERSION                           =     " ver 1.0.2.1";
+constexpr auto VERSION                           =     " ver 1.0.3";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";
@@ -36,6 +36,7 @@ constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISC
 //
 
 #include <libusb/libusb.h>
+#include <sb_loader_DLL.h>
 
 #include <QMainWindow>
 #include <QGraphicsScene>
@@ -45,7 +46,7 @@ constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISC
 #include <QTextCodec>
 #include <QMessageBox>
 #include <QFileInfo>
-#include <QProcess>
+//#include <QProcess>
 #include <QByteArray>
 #include <QFile>
 
@@ -105,8 +106,8 @@ private:
 
     int searchForDevices();
 
-    void openProcess(const QString& path, const QStringList& argu);
-    QProcess* process = new QProcess(this);
+    //void openProcess(const QString& path, const QStringList& argu);
+    //QProcess* process = new QProcess(this);
 
 private slots:
     void on_button_OSLoader_path_clicked();
@@ -119,6 +120,6 @@ private slots:
     void on_pushButton_update_OandS_clicked();
 
     void getReturnData(int OSLoader, int System, int edb);
-    void readResult(int exitCode);
+    //void readResult(int exitCode);
 };
 #endif // STARTWINDOW_H

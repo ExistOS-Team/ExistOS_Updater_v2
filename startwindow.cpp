@@ -12,11 +12,6 @@ startWindow::startWindow(QWidget* parent)
 	setWindowTitle("ExistOS Updater");
 	setWindowIcon(QIcon("image/icon.png"));
 
-	QFileInfo sb_info("sb_loader.exe");
-	if (!sb_info.isFile()) {
-		QMessageBox::critical(this, " ", "Can not find sb_loader.exe!");
-	}
-
 	image_OSLoader->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader.bmp").scaled(64, 64));
 	image_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_System.bmp").scaled(64, 64));
 	image_OSLoader_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader_System.bmp").scaled(64, 64));
@@ -31,14 +26,10 @@ startWindow::startWindow(QWidget* parent)
 	ui->pushButton_update_S->setDisabled(true);
 
 	connect(optionsWindow, SIGNAL(returnData(int, int, int)), this, SLOT(getReturnData(int, int, int)));
-
-	libusb_init(nullptr);	//init libusb
 }
 
 startWindow::~startWindow()
 {
-	QFile::remove("sb_loader.exe");		//for virtual box ONLY! Disable it when debugging!
-
 	delete ui;
 	delete image_OSLoader;
 	delete image_OSLoader_System;
@@ -47,12 +38,11 @@ startWindow::~startWindow()
 	delete updWindow;
 	delete optionsWindow;
 	delete waitWindow;
-	delete process;
-
-	libusb_exit(nullptr);	//exit libusb
 }
 
 bool startWindow::searchRecoveryModeDevice() {
+	libusb_init(nullptr);	//init libusb
+
 	struct libusb_device* dev = nullptr;
 	struct libusb_device_handle *dev_hdl = nullptr;
 	struct libusb_device_descriptor dev_dsp;
@@ -71,6 +61,8 @@ bool startWindow::searchRecoveryModeDevice() {
 	}
 
 	libusb_close(dev_hdl);
+
+	libusb_exit(nullptr);	//exit libusb
 	return isFound;
 }
 
@@ -194,6 +186,7 @@ void startWindow::getReturnData(int OSLoader, int System, int edb) {
 	edbMode = edb;
 }
 
+/*	old codes
 void startWindow::openProcess(const QString& path, const QStringList& argu) {
 		process->start(path, argu);
 		connect(process, SIGNAL(finished(int)), this, SLOT(readResult(int)));
@@ -206,7 +199,7 @@ void startWindow::readResult(int exitCode) {
 	//updWindow->addLine(QString::fromLocal8Bit(result));
 	process->close();
 }
-
+*/
 
 bool startWindow::startUpdate(const QList<int>& work)
 {
@@ -220,10 +213,12 @@ bool startWindow::startUpdate(const QList<int>& work)
 		switch (link_mode)
 		{
 		case 1:     //recovery mode
-			argu.append("-f");
-			argu.append(ui->OSLoader_path->text());
+
+			TCHAR* argv[2];
+			argv[0] = (TCHAR*)TEXT("-f");
+			argv[1] = (TCHAR*)reinterpret_cast<const wchar_t*>(ui->OSLoader_path->text().utf16());
 			updWindow->addLine("Sending OSLoader to calculator RAM...");
-			openProcess( "sb_loader.exe", argu);
+			updWindow->addLine("Finished with code " + QString::number(_tmain(2, argv)));
 			updWindow->addLine("Reboot and reconnect... ");
 			//updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
 
