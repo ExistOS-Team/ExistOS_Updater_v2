@@ -4,7 +4,7 @@
 
 This application supports Windows10 (1809 or later) and Windows11.
 
-If this application do not run properly, please check whether the MSVC runtime libraries had been installed.
+If this application does not run properly, please check whether the MSVC runtime libraries had been installed.
 
 If not, please download from [here](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170).
 
