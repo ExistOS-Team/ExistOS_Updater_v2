@@ -19,3 +19,7 @@ void About::on_button_About_Qt_clicked()
     QMessageBox::aboutQt(this);
 }
 
+void About::on_button_OK_clicked() {
+    this->hide();
+}
+

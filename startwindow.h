@@ -15,16 +15,17 @@
 #define HOSTLINK_PID 0x3770
 
 #define REBOOT_INTERVAL 5000
+#define REBOOT_EDB_INTERVAL 3000
 #define REBOOT_RETRY_TIME 3
 
 //define texts
-constexpr auto VERSION                           =     " ver 1.0.3";
+constexpr auto VERSION                           =     "ver 1.0.3.1";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [Bin Mode EDB]";
-constexpr auto TEXT_SEARCHING                    =     "Searching for Devices...";
-constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISCONNECT";
+//constexpr auto TEXT_SEARCHING                    =     "Searching for Devices...";
+//constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISCONNECT";
 //
 
 //EDB includes
@@ -46,7 +47,6 @@ constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISC
 #include <QTextCodec>
 #include <QMessageBox>
 #include <QFileInfo>
-//#include <QProcess>
 #include <QByteArray>
 #include <QFile>
 
@@ -64,7 +64,7 @@ QT_END_NAMESPACE
 class startWindow : public QMainWindow
 {
     Q_OBJECT
-
+        
 public:
     startWindow(QWidget *parent = nullptr);
     ~startWindow();
@@ -106,9 +106,6 @@ private:
 
     int searchForDevices();
 
-    //void openProcess(const QString& path, const QStringList& argu);
-    //QProcess* process = new QProcess(this);
-
 private slots:
     void on_button_OSLoader_path_clicked();
     void on_button_System_path_clicked();
@@ -120,6 +117,5 @@ private slots:
     void on_pushButton_update_OandS_clicked();
 
     void getReturnData(int OSLoader, int System, int edb);
-    //void readResult(int exitCode);
 };
 #endif // STARTWINDOW_H

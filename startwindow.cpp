@@ -68,7 +68,7 @@ bool startWindow::searchRecoveryModeDevice() {
 
 void startWindow::on_button_OSLoader_path_clicked()
 {
-	ui->OSLoader_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("OS Loader File(*.sb)")));
+	ui->OSLoader_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("OSLoader File(*.sb)")));
 	if (ui->OSLoader_path->text() != "") {
 		QFileInfo* info = new QFileInfo(ui->OSLoader_path->text());
 		if (info->size() > (page_System - page_OSLoader) * 2112) {
@@ -186,40 +186,30 @@ void startWindow::getReturnData(int OSLoader, int System, int edb) {
 	edbMode = edb;
 }
 
-/*	old codes
-void startWindow::openProcess(const QString& path, const QStringList& argu) {
-		process->start(path, argu);
-		connect(process, SIGNAL(finished(int)), this, SLOT(readResult(int)));
-}
-
-void startWindow::readResult(int exitCode) {
-	//QMessageBox::information(this, " ", "exitCode=" + QString::number(exitCode));
-	//QByteArray result;
-	//result = process->readAll();
-	//updWindow->addLine(QString::fromLocal8Bit(result));
-	process->close();
-}
-*/
-
 bool startWindow::startUpdate(const QList<int>& work)
 {
 	updWindow->clear();
 	updWindow->show();
-	updWindow->addLine("Start update...");
+	updWindow->addLine("Starting update...");
 
-	QStringList argu;
+	int exitCode;
 
 	for (int i = 0; i < work.size(); i++) {
 		switch (link_mode)
 		{
 		case 1:     //recovery mode
-
 			TCHAR* argv[2];
 			argv[0] = (TCHAR*)TEXT("-f");
 			argv[1] = (TCHAR*)reinterpret_cast<const wchar_t*>(ui->OSLoader_path->text().utf16());
 			updWindow->addLine("Sending OSLoader to calculator RAM...");
-			updWindow->addLine("Finished with code " + QString::number(_tmain(2, argv)));
-			updWindow->addLine("Reboot and reconnect... ");
+			exitCode = _tmain(2, argv);
+			updWindow->addLine("Finished with code " + QString::number(exitCode) + ".");
+			if (exitCode != 0) {
+				updWindow->addLine("ERROR: Failed to send OSLoader to calculator RAM.");
+				return false;
+			}
+
+			updWindow->addLine("Reboot and reconnect... Please wait. ");
 			//updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
 
 			for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
@@ -275,7 +265,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 					//updWindow->addLine(QString::number(fclose(item.f)));
 				}
 
-				updWindow->addLine("Reboot...");
+				updWindow->addLine("Rebooting...");
 				edb.reboot();
 				edb.close();
 
@@ -292,7 +282,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 				item.filename = ui->OSLoader_path->text().toLocal8Bit().data();
 				item.toPage = page_OSLoader;
 				item.bootImg = true;
-				updWindow->addLine("Flash OSLoader to page " + QString::number(page_OSLoader) + ".");
+				updWindow->addLine("Flashing OSLoader to page " + QString::number(page_OSLoader) + ".");
 				imglist.push_back(item);
 				edb.reset(EDB_MODE_TEXT);
 				if (!edb.ping()) {
@@ -306,7 +296,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 					edb.flash(item);
 				}
 
-				updWindow->addLine("Reboot...");
+				updWindow->addLine("Rebooting...");
 				edb.reboot();
 				edb.close();
 
@@ -322,7 +312,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 		}
 
 		for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
-			Sleep(3000);
+			Sleep(REBOOT_EDB_INTERVAL);
 			if (searchForDevices() == EDB_BIN) break;
 		}
 	}

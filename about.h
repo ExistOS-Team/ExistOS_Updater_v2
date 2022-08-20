@@ -18,6 +18,7 @@ public:
 
 private slots:
     void on_button_About_Qt_clicked();
+    void on_button_OK_clicked();
 
 private:
     Ui::About *ui;
