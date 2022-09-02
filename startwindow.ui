@@ -97,7 +97,7 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>OSLoader:</string>
+          <string>OS Loader:</string>
          </property>
         </widget>
        </item>

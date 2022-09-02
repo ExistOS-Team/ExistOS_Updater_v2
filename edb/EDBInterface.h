@@ -10,6 +10,7 @@
 
 #define EOS_VID		0xCAFE
 #define EOS_PID		0x4003
+
 // Device endpoint(s)
 #define EP_IN 0x83
 #define EP_OUT 0x03

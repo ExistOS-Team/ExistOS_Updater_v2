@@ -25,8 +25,8 @@ unsigned char blockChksum(char* block, unsigned int blockSize)
 
 void EDBInterface::reset(bool mode) 
 {
-	DWORD wrcnt;
-	BOOL ret;
+	//DWORD wrcnt;
+	//BOOL ret;
 	if (USBHighSpeed)
 	{
 		//Sleep(100);
@@ -49,7 +49,7 @@ bool EDBInterface::waitStr(char* str)
 	if (USBHighSpeed) {
 		while (retry > 0)
 		{
-			cout << "Waiting Sync...\r";
+			//cout << "Waiting Sync...\r";
 			memset(wrBuf, 0, sizeof(wrBuf));
 			SetFilePointer(hCMDf, 0, NULL, FILE_BEGIN);
 			ret = ReadFile(hCMDf, wrBuf, sizeof(wrBuf), &cnt, NULL);
@@ -59,13 +59,13 @@ bool EDBInterface::waitStr(char* str)
 					return true;
 				}
 				else {
-					cout << "Sync Failed... Retry:" << retry << endl;
+					//cout << "Sync Failed... Retry:" << retry << endl;
 					this->reset(EDB_MODE_TEXT);
 					retry--;
 				}
 			}else
 			{
-				cout << "Sync Failed... Retry:" << retry << endl;
+				//cout << "Sync Failed... Retry:" << retry << endl;
 				this->reset(EDB_MODE_TEXT);
 				retry--;
 			}
@@ -74,7 +74,7 @@ bool EDBInterface::waitStr(char* str)
 	else {
 		while (retry > 0)
 		{
-			cout << "Waiting Sync...\r";
+			//cout << "Waiting Sync...\r";
 			com.Read(buf, len, &cnt);
 			if (cnt > 0)
 			{
@@ -82,13 +82,13 @@ bool EDBInterface::waitStr(char* str)
 					return true;
 				}
 				else {
-					cout << "Sync Failed... Retry:" << retry << endl;
+					//cout << "Sync Failed... Retry:" << retry << endl;
 					this->reset(EDB_MODE_TEXT);
 					retry--;
 				}
 			}
 			else {
-				cout << "Sync Failed... Retry:" << retry << endl;
+				//cout << "Sync Failed... Retry:" << retry << endl;
 				this->reset(EDB_MODE_TEXT);
 				retry--;
 			}
@@ -104,7 +104,7 @@ void EDBInterface::wrStr(const char *str)
 		return;
 	}
 	DWORD cnt;
-	int len = int(strlen(str));
+	//int len = int(strlen(str));
 	if (USBHighSpeed) {
 		memset(wrBuf, 0, sizeof(wrBuf));
 		strcpy_s(wrBuf, str);
@@ -180,16 +180,16 @@ int EDBInterface::flash(flashImg item)
 	this->reset(EDB_MODE_TEXT);
 	if (this->ping() == false)
 	{
-		cout << "Device No Responses." << endl;
+		//cout << "Device No Responses." << endl;
 		return false;
 	}
 	this->wrStr("RESETDBUF\n");
 	if (!this->waitStr((char*)"READY\n"))
 	{
-		cout << "Device No Responses." << endl;
+		//cout << "Device No Responses." << endl;
 		return false;
 	}
-	cout << "Writing: " << item.filename << "..." << endl;
+	//cout << "Writing: " << item.filename << "..." << endl;
 	fseek(item.f, 0, SEEK_END);
 	size_t fsize = ftell(item.f);
 	uint8_t chksum;
@@ -251,10 +251,10 @@ int EDBInterface::flash(flashImg item)
 
 		if (page_cnt % 200 == 0) {
 			long long speed = BIN_BLOCK_SIZE / (getTime() - st);
-			cout << "Upload: " << ftell(item.f) << "/" << fsize;
-			cout << " Page:" << page_cnt << " Block:" << block_cnt << " ";
+			//cout << "Upload: " << ftell(item.f) << "/" << fsize;
+			//cout << " Page:" << page_cnt << " Block:" << block_cnt << " ";
 			printf(" chksum:%02x==%02x, %lld KB/s", chksum, rcshkdum, speed);
-			cout << "  remaining:" << (fsize - ftell(item.f)) / speed / 1000 << "s        \r";
+			//cout << "  remaining:" << (fsize - ftell(item.f)) / speed / 1000 << "s        \r";
 			fflush(stdout);
 		}
 
@@ -265,7 +265,7 @@ int EDBInterface::flash(flashImg item)
 
 	if (item.bootImg)
 	{
-		cout << "\nSetting NCB..." << endl;
+		//cout << "\nSetting NCB..." << endl;
 		memset(cmdbuf, 0, sizeof(cmdbuf));
 		sprintf_s(cmdbuf, "MKNCB:%d,%d\n", item.toPage / 64, fsize / 2048);
 		this->wrStr(cmdbuf);
@@ -442,7 +442,7 @@ bool EDBInterface::open(bool mode)
 		char d = getp();
 		while (d == 0)
 		{
-			cout << "Waiting USB CDC Connect..." << endl;
+			//cout << "Waiting USB CDC Connect..." << endl;
 			d = getp();
 			Sleep(2000);
 			retry--;
@@ -469,7 +469,7 @@ bool EDBInterface::open(bool mode)
 
 		if (hCMDf == INVALID_HANDLE_VALUE || hDATf == INVALID_HANDLE_VALUE)
 		{
-			cout << "Failed to open Device." << endl;
+			//cout << "Failed to open Device." << endl;
 			return false;
 		}
 
@@ -480,14 +480,14 @@ bool EDBInterface::open(bool mode)
 		string COM = findUsbSerialCom();
 		while (COM == "NONE")
 		{
-			cout << "Waiting USB CDC Connect..." << endl;
+			//cout << "Waiting USB CDC Connect..." << endl;
 			Sleep(2000);
 			COM = findUsbSerialCom();
 		}
-		cout << "Select:" << COM << endl;
+		//cout << "Select:" << COM << endl;
 		if (com.Open(COM) == false)
 		{
-			cout << "Open Serial Port:" << COM << " Failed.\n" << endl;
+			//cout << "Open Serial Port:" << COM << " Failed.\n" << endl;
 			Sleep(2000);
 			return false;
 		}

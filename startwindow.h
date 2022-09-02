@@ -19,7 +19,7 @@
 #define REBOOT_RETRY_TIME 3
 
 //define texts
-constexpr auto VERSION                           =     "ver 1.0.3.1";
+constexpr auto VERSION                           =     "ver 1.0.3.2";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";

@@ -41,7 +41,12 @@ startWindow::~startWindow()
 }
 
 bool startWindow::searchRecoveryModeDevice() {
-	libusb_init(nullptr);	//init libusb
+	//init libusb
+	if (libusb_init(nullptr) != 0) {
+		QMessageBox::critical(this, " ", "Can not init libusb!");
+		return false;
+	}
+
 
 	struct libusb_device* dev = nullptr;
 	struct libusb_device_handle *dev_hdl = nullptr;
@@ -68,11 +73,11 @@ bool startWindow::searchRecoveryModeDevice() {
 
 void startWindow::on_button_OSLoader_path_clicked()
 {
-	ui->OSLoader_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("OSLoader File(*.sb)")));
+	ui->OSLoader_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("OS Loader File(*.sb)")));
 	if (ui->OSLoader_path->text() != "") {
 		QFileInfo* info = new QFileInfo(ui->OSLoader_path->text());
 		if (info->size() > (page_System - page_OSLoader) * 2112) {
-			QMessageBox::critical(this, " ", "This OSLoader file is too large to flash.");
+			QMessageBox::warning(this, " ", "This OS Loader file is too large to flash.");
 			ui->OSLoader_path->clear();
 		}
 		delete info;
@@ -86,7 +91,7 @@ void startWindow::on_button_System_path_clicked()
 	if (ui->System_path->text() != "") {
 		QFileInfo* info = new QFileInfo(ui->System_path->text());
 		if (info->size() > (MAX_PAGE - page_System) * 2112) {
-			QMessageBox::critical(this, " ", "This System file is too large to flash.");
+			QMessageBox::warning(this, " ", "This System file is too large to flash.");
 			ui->System_path->clear();
 		}
 		delete info;
@@ -201,11 +206,11 @@ bool startWindow::startUpdate(const QList<int>& work)
 			TCHAR* argv[2];
 			argv[0] = (TCHAR*)TEXT("-f");
 			argv[1] = (TCHAR*)reinterpret_cast<const wchar_t*>(ui->OSLoader_path->text().utf16());
-			updWindow->addLine("Sending OSLoader to calculator RAM...");
+			updWindow->addLine("Sending OS Loader to calculator RAM...");
 			exitCode = _tmain(2, argv);
 			updWindow->addLine("Finished with code " + QString::number(exitCode) + ".");
 			if (exitCode != 0) {
-				updWindow->addLine("ERROR: Failed to send OSLoader to calculator RAM.");
+				updWindow->addLine("ERROR: Failed to send OS Loader to calculator RAM.");
 				return false;
 			}
 
@@ -248,13 +253,14 @@ bool startWindow::startUpdate(const QList<int>& work)
 				item.filename = ui->System_path->text().toLocal8Bit().data();
 				item.toPage = page_System;
 				item.bootImg = false;
-				updWindow->addLine("Flash system to page " + QString::number(page_System) + ".");
+				updWindow->addLine("Flashing system to page " + QString::number(page_System) + ".");
 				imglist.push_back(item);
 				edb.reset(EDB_MODE_TEXT);
 				if (!edb.ping()) {
 					updWindow->addLine("ERROR: Device no response.");
 					return false;
 				}
+
 				//edb.vm_suspend();
 				//edb.mscmode();
 
@@ -275,14 +281,14 @@ bool startWindow::startUpdate(const QList<int>& work)
 
 				ret = fopen_s(&item.f, ui->OSLoader_path->text().toLocal8Bit().data(), "rb");
 				if (ret != 0) {
-					updWindow->addLine("ERROR: Can not open file. Make sure you select the correct file.");
+					updWindow->addLine("ERROR: Can not open file. Make sure you selected the correct file.");
 					return false;
 				}
 
 				item.filename = ui->OSLoader_path->text().toLocal8Bit().data();
 				item.toPage = page_OSLoader;
 				item.bootImg = true;
-				updWindow->addLine("Flashing OSLoader to page " + QString::number(page_OSLoader) + ".");
+				updWindow->addLine("Flashing OS Loader to page " + QString::number(page_OSLoader) + ".");
 				imglist.push_back(item);
 				edb.reset(EDB_MODE_TEXT);
 				if (!edb.ping()) {
@@ -317,14 +323,13 @@ bool startWindow::startUpdate(const QList<int>& work)
 		}
 	}
 
-	updWindow->addLine("Done!");
 	return true;
 }
 
 void startWindow::on_pushButton_update_O_clicked()
 {
 	if (ui->OSLoader_path->text() == "") {
-		QMessageBox::critical(this, " ", "You have to select a file for OSLoader first.");
+		QMessageBox::critical(this, " ", "You have to select a file for OS Loader first.");
 	}
 	else {
 		setButtonStatus(false, false, false);
@@ -343,7 +348,7 @@ void startWindow::on_pushButton_update_S_clicked()
 {
 	if (link_mode == HOSTLINK_MODE) {
 		if (ui->OSLoader_path->text() == "") {
-			QMessageBox::information(this, " ", "In HostLink mode,\nyou need to select an OSLoder file for updating.");
+			QMessageBox::information(this, " ", "In HostLink mode,\nyou need to select an OS Loder file for updating.");
 			return;
 		}
 	}
@@ -372,7 +377,7 @@ void startWindow::on_pushButton_update_OandS_clicked()
 	}
 
 	if (ui->OSLoader_path->text() == "") {
-		QMessageBox::critical(this, " ", "You have to select a file for OSLoader first.");
+		QMessageBox::critical(this, " ", "You have to select a file for OS Loader first.");
 	}
 	else {
 		if (ui->System_path->text() == "") {

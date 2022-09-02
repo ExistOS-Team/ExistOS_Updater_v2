@@ -3,8 +3,8 @@
 
 #include <QDialog>
 
-constexpr auto DEFAULT_OSLOADER_PAGE = 1408;
-constexpr auto DEFAULT_SYSTEM_PAGE = 1984;
+#define DEFAULT_OSLOADER_PAGE 1408
+#define DEFAULT_SYSTEM_PAGE 1984
 
 namespace Ui {
 class Options;

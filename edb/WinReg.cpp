@@ -170,4 +170,3 @@ string findUsbSerialCom()
 
 	return COM;
 }
-
