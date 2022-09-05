@@ -48,7 +48,7 @@ constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [Bin Mo
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QByteArray>
-#include <QFile>
+#include <QSettings>
 
 #include <about.h>
 #include <updatewindow.h>
@@ -79,6 +79,8 @@ private:
     updateWindow* updWindow = new updateWindow(this);
     Options* optionsWindow = new Options(this);
     wait* waitWindow = new wait(this);
+
+    QSettings* ini = new QSettings("config.ini", QSettings::IniFormat);
 
     int page_OSLoader = DEFAULT_OSLOADER_PAGE;
     int page_System = DEFAULT_SYSTEM_PAGE;

@@ -167,6 +167,13 @@
       </layout>
      </item>
      <item>
+      <widget class="QCheckBox" name="checkBox_remember_path">
+       <property name="text">
+        <string>Remember path</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="Line" name="line_3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

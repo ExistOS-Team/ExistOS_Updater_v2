@@ -15,6 +15,7 @@ startWindow::startWindow(QWidget* parent)
 	image_OSLoader->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader.bmp").scaled(64, 64));
 	image_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_System.bmp").scaled(64, 64));
 	image_OSLoader_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader_System.bmp").scaled(64, 64));
+
 	ui->graphicsView_O->setScene(image_OSLoader);
 	ui->graphicsView_S->setScene(image_System);
 	ui->graphicsView_OandS->setScene(image_OSLoader_System);
@@ -25,11 +26,54 @@ startWindow::startWindow(QWidget* parent)
 	ui->pushButton_update_OandS->setDisabled(true);
 	ui->pushButton_update_S->setDisabled(true);
 
+	QFileInfo* ini_file = new QFileInfo;
+	ini_file->setFile("config.ini");
+
+	if (!ini_file->exists()) {
+
+		ini->beginGroup(tr("Path"));
+		ini->setValue(tr("osloader"), "");
+		ini->setValue(tr("system"), "");
+		ini->endGroup();
+
+		ini->beginGroup(tr("Statu"));
+		ini->setValue(tr("savePath"), false);
+		ini->endGroup();
+		ui->checkBox_remember_path->setChecked(false);
+	}
+	else {
+		if (ini->value(tr("/Statu/savePath")) == true) {
+			QStringList path;
+			path.append(ini->value(tr("/Path/osloader")).toString());
+			path.append(ini->value(tr("/Path/system")).toString());
+
+			if (path.at(0) != "") {
+				if (QFileInfo(path.at(0)).exists()) ui->OSLoader_path->setText(path.at(0));
+			}
+			if (path.at(1) != "") {
+				if (QFileInfo(path.at(1)).exists()) ui->System_path->setText(path.at(1));
+			}
+
+			ui->checkBox_remember_path->setChecked(true);
+		}
+	}
+
 	connect(optionsWindow, SIGNAL(returnData(int, int, int)), this, SLOT(getReturnData(int, int, int)));
 }
 
 startWindow::~startWindow()
 {
+	if (ui->checkBox_remember_path->isChecked()) {
+		ini->setValue(tr("/Path/osloader"), ui->OSLoader_path->text());
+		ini->setValue(tr("/Path/system"), ui->System_path->text());
+		ini->setValue(tr("/Statu/savePath"), true);
+	}
+	else {
+		ini->setValue(tr("/Path/osloader"), "");
+		ini->setValue(tr("/Path/system"), "");
+		ini->setValue(tr("/Statu/savePath"), false);
+	}
+
 	delete ui;
 	delete image_OSLoader;
 	delete image_OSLoader_System;
@@ -38,6 +82,7 @@ startWindow::~startWindow()
 	delete updWindow;
 	delete optionsWindow;
 	delete waitWindow;
+	delete ini;
 }
 
 bool startWindow::searchRecoveryModeDevice() {
