@@ -58,6 +58,7 @@ startWindow::startWindow(QWidget* parent)
 		}
 	}
 
+        delete ini_file;
 	connect(optionsWindow, SIGNAL(returnData(int, int, int)), this, SLOT(getReturnData(int, int, int)));
 }
 
