@@ -5,7 +5,7 @@
 #include "WinReg.h"
 
 
-#define INFO(fmt, ...) printf(fmt, __VA_ARGS__)
+#define INFO(fmt, ...) //printf(fmt, __VA_ARGS__)
 
 
 #define EOS_VID		0xCAFE

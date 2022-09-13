@@ -165,7 +165,7 @@ bool EDBInterface::eraseBlock(unsigned int block)
 	this->wrStr(cmdbuf);
 	if (this->waitStr((char*)"EROK\n") == false)
 	{
-		printf("Erase Block Time Out:%d\n", block);
+		//printf("Erase Block Time Out:%d\n", block);
 		return false;
 	}
 	return true;
@@ -222,7 +222,7 @@ int EDBInterface::flash(flashImg item)
 		sscanf_s(cmdbuf, "CHKSUM:%02x\n", &rcshkdum);
 
 		if (rcshkdum != chksum) {
-			printf("chksum error, w:%02x r:%02x\n", chksum, rcshkdum);
+			//printf("chksum error, w:%02x r:%02x\n", chksum, rcshkdum);
 			return false;
 		}
 
@@ -230,7 +230,7 @@ int EDBInterface::flash(flashImg item)
 		{
 			if (eraseBlock(block_cnt) == false)
 			{
-				printf("Erase Block Time Out:%d\n", block_cnt);
+				//printf("Erase Block Time Out:%d\n", block_cnt);
 				return false;
 			}
 			//Block Erase;
@@ -245,7 +245,7 @@ int EDBInterface::flash(flashImg item)
 		this->wrStr(cmdbuf);
 		if (this->waitStr((char*)"PGOK\n") == false)
 		{
-			printf("Program Page Time Out:%d\n", page_cnt);
+			//printf("Program Page Time Out:%d\n", page_cnt);
 			return false;
 		}
 
@@ -253,7 +253,7 @@ int EDBInterface::flash(flashImg item)
 			long long speed = BIN_BLOCK_SIZE / (getTime() - st);
 			//cout << "Upload: " << ftell(item.f) << "/" << fsize;
 			//cout << " Page:" << page_cnt << " Block:" << block_cnt << " ";
-			printf(" chksum:%02x==%02x, %lld KB/s", chksum, rcshkdum, speed);
+			//printf(" chksum:%02x==%02x, %lld KB/s", chksum, rcshkdum, speed);
 			//cout << "  remaining:" << (fsize - ftell(item.f)) / speed / 1000 << "s        \r";
 			fflush(stdout);
 		}
@@ -271,7 +271,7 @@ int EDBInterface::flash(flashImg item)
 		this->wrStr(cmdbuf);
 		if (this->waitStr((char*)"MKOK\n") == false)
 		{
-			printf("Setting NCB Page Time Out:%d\n", item.toPage / 64);
+			//printf("Setting NCB Page Time Out:%d\n", item.toPage / 64);
 			return false;
 		}
 	}

@@ -236,7 +236,7 @@
            <item>
             <widget class="QPushButton" name="pushButton_update_O">
              <property name="text">
-              <string>Update OSLoader</string>
+              <string>Update OS Loader</string>
              </property>
             </widget>
            </item>
@@ -340,7 +340,7 @@
            <item>
             <widget class="QPushButton" name="pushButton_update_OandS">
              <property name="text">
-              <string>Update OSLoader &amp;&amp; System</string>
+              <string>Update OS Loader &amp;&amp; System</string>
              </property>
             </widget>
            </item>

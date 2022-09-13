@@ -18,7 +18,7 @@
 #define REBOOT_EDB_INTERVAL 3000
 #define REBOOT_RETRY_TIME 3
 
-//define texts
+//define texts//
 constexpr auto VERSION                           =     "ver 1.0.3.2";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
@@ -26,15 +26,15 @@ constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text M
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [Bin Mode EDB]";
 //constexpr auto TEXT_SEARCHING                    =     "Searching for Devices...";
 //constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISCONNECT";
-//
+////////////////
 
-//EDB includes
+//EDB includes//
 #include <stdint.h>
 #include "edb/CComHelper.h"
 #include "edb/WinReg.h"
 #include <time.h>
 #include "edb/EDBInterface.h"
-//
+////////////////
 
 #include <libusb/libusb.h>
 #include <sb_loader_DLL.h>
@@ -70,12 +70,12 @@ public:
     ~startWindow();
 
 private:
-    Ui::startWindow *ui;
-    QGraphicsScene *image_OSLoader = new QGraphicsScene;
-    QGraphicsScene *image_System = new QGraphicsScene;
-    QGraphicsScene *image_OSLoader_System= new QGraphicsScene;
+    Ui::startWindow* ui;
+    QGraphicsScene* image_OSLoader = new QGraphicsScene;
+    QGraphicsScene* image_System = new QGraphicsScene;
+    QGraphicsScene* image_OSLoader_System= new QGraphicsScene;
 
-    About *aboutWindow = new About(this);
+    About* aboutWindow = new About(this);
     updateWindow* updWindow = new updateWindow(this);
     Options* optionsWindow = new Options(this);
     wait* waitWindow = new wait(this);
@@ -95,10 +95,10 @@ private:
         TEXT_DEVICE_CONNECTED_EDB_BIN
     };
 
-    //edb things
+    //edb things//
     vector<flashImg> imglist;
     EDBInterface edb;
-    //
+    //////////////
 
     bool startUpdate(const QList<int> &work);
 

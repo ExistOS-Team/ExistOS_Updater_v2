@@ -39,6 +39,7 @@ startWindow::startWindow(QWidget* parent)
 		ini->beginGroup(tr("Statu"));
 		ini->setValue(tr("savePath"), false);
 		ini->endGroup();
+
 		ui->checkBox_remember_path->setChecked(false);
 	}
 	else {
@@ -57,8 +58,8 @@ startWindow::startWindow(QWidget* parent)
 			ui->checkBox_remember_path->setChecked(true);
 		}
 	}
+	delete ini_file;
 
-        delete ini_file;
 	connect(optionsWindow, SIGNAL(returnData(int, int, int)), this, SLOT(getReturnData(int, int, int)));
 }
 
@@ -165,11 +166,10 @@ int startWindow::searchForDevices() {
 		link_mode = HOSTLINK_MODE;
 	}
 	else {
-
+		//hostlink mode device not found:
 		switch (edbMode)
 		{
 		case EDB_BIN:
-
 			if (edb.open(EDB_MODE_BIN)) {
 				link_mode = EDB_BIN;
 				edb.close();
@@ -179,7 +179,6 @@ int startWindow::searchForDevices() {
 			}
 			break;
 		case EDB_TEXT:
-
 			if (edb.open(EDB_MODE_TEXT)) {
 				link_mode = EDB_TEXT;
 				edb.close();
@@ -204,7 +203,7 @@ int startWindow::searchForDevices() {
 		setButtonStatus(true, true, true);
 		break;
 	case EDB_TEXT:
-		setButtonStatus(false, false, false);
+		setButtonStatus(true, true, true);
 		break;
 	case EDB_BIN:
 		setButtonStatus(true, true, true);

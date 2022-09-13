@@ -1,6 +1,6 @@
 #include "WinReg.h"
 #define debug(fmt, ...) 
-//printf(fmt, __VA_ARGS__)
+////printf(fmt, __VA_ARGS__)
 
 
 #include <iostream>
@@ -62,7 +62,7 @@ vector<string> QueryEUSBPort()
 		status = RegEnumKey(hKey, dwIndex++, valueName, MAX_PATH);
 		if ((status == ERROR_SUCCESS))
 		{
-			//wprintf(L"%s exists!\n", portName);
+			//w//printf(L"%s exists!\n", portName);
 			//strValue 目标
 			lstrcpyW(paraPath, EUSB_KEYNAME);
 			lstrcpyW(&paraPath[lstrlenW(paraPath)], _T("\\"));
@@ -75,7 +75,7 @@ vector<string> QueryEUSBPort()
 				continue;
 			}
 
-			//wprintf(L"paraPath: %s\n", paraPath);
+			//w//printf(L"paraPath: %s\n", paraPath);
 
 			//WideCharToMultiByte(CP_ACP, 0, (LPCWCH)valueName, -1, strValue, MAX_PATH, NULL, NULL);
 			COM.push_back(strValue);
@@ -117,7 +117,7 @@ vector<string> QuerySerialPort()
 		status = RegEnumValue(hKey, dwIndex++, valueName, &dwSizeValueName, NULL, &Type, portName, &dwSizeofPortName);
 		if ((status == ERROR_SUCCESS))
 		{
-			//wprintf(L"%s exists!\n", portName);
+			//w//printf(L"%s exists!\n", portName);
 			//strValue 目标
 			WideCharToMultiByte(CP_ACP, 0, (LPCWCH)portName, -1, strValue, length, NULL, NULL);
 			COM.push_back(strValue);
@@ -138,22 +138,22 @@ string findUsbSerialCom()
 	vector<string> EUSBPort = QueryEUSBPort();
 	string COM = "NONE";
 
-	cout << "EUSB Port:" << EUSBPort.size() << endl;
+	//cout << "EUSB Port:" << EUSBPort.size() << endl;
 	for (string& var : EUSBPort)
 	{
-		cout << "[" << var << "]";
+		//cout << "[" << var << "]";
 	}
-	cout << endl;
+	//cout << endl;
 	if (EUSBPort.size() == 0) {
 		return COM;
 	}
 
-	cout << "COMListAvailable:" << COMListAvailable.size() << endl;
+	//cout << "COMListAvailable:" << COMListAvailable.size() << endl;
 	for (string& var : COMListAvailable)
 	{
-		cout << "[" << var << "]";
+		//cout << "[" << var << "]";
 	}
-	cout << endl;
+	//cout << endl;
 
 	for (string& EUSB : EUSBPort)
 	{
@@ -161,7 +161,7 @@ string findUsbSerialCom()
 		{
 			if (EUSB.compare(ACOM) == 0)
 			{
-				cout << "Find:" << ACOM << endl;
+				//cout << "Find:" << ACOM << endl;
 				COM = ACOM;
 				break;
 			}
