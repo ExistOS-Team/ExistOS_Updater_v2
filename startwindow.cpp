@@ -203,7 +203,7 @@ int startWindow::searchForDevices() {
 		setButtonStatus(true, true, true);
 		break;
 	case EDB_TEXT:
-		setButtonStatus(true, true, true);
+		setButtonStatus(false, false, false);
 		break;
 	case EDB_BIN:
 		setButtonStatus(true, true, true);
