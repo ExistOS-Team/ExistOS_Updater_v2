@@ -96,7 +96,7 @@ bool startWindow::searchRecoveryModeDevice() {
 
 
 	struct libusb_device* dev = nullptr;
-	struct libusb_device_handle *dev_hdl = nullptr;
+	struct libusb_device_handle* dev_hdl = nullptr;
 	struct libusb_device_descriptor dev_dsp;
 	bool isFound = true;
 
@@ -393,7 +393,7 @@ void startWindow::on_pushButton_update_S_clicked()
 {
 	if (link_mode == HOSTLINK_MODE) {
 		if (ui->OSLoader_path->text() == "") {
-			QMessageBox::information(this, " ", "In HostLink mode,\nyou need to select an OS Loder file for updating.");
+			QMessageBox::information(this, " ", "In HostLink mode,\nyou need to select an OS Loader file for updating.");
 			return;
 		}
 	}
