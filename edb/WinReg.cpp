@@ -1,6 +1,5 @@
 #include "WinReg.h"
-#define debug(fmt, ...) 
-////printf(fmt, __VA_ARGS__)
+//#define debug(fmt, ...) printf(fmt, __VA_ARGS__)
 
 
 #include <iostream>
@@ -15,13 +14,16 @@ void wcharTochar(const wchar_t* wcharSrc, char* chrDst, int chrDstlength)
 bool QueryRegKey(LPCWSTR keyPath, LPCWSTR ValueName, char* Value, int valueLength)
 {
 	HKEY hKey;
+	RegOpenKey(HKEY_LOCAL_MACHINE, keyPath, &hKey);
+
+	/*
 	if (ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, keyPath, &hKey))
 	{
 		debug("OpenRegKey success!\n");
 
 	}
 	else { debug("OpenRegKey failed!\n"); }
-
+	*/
 
 	DWORD dwType = REG_SZ;//定义数据类型
 	DWORD dwLen = MAX_PATH;
@@ -46,7 +48,7 @@ vector<string> QueryEUSBPort()
 
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
 	{
-		debug("open USB registry key failed !");
+		//debug("open USB registry key failed !");
 		RegCloseKey(hKey); //关闭注册表
 		return COM;
 	}
@@ -62,7 +64,7 @@ vector<string> QueryEUSBPort()
 		status = RegEnumKey(hKey, dwIndex++, valueName, MAX_PATH);
 		if ((status == ERROR_SUCCESS))
 		{
-			//w//printf(L"%s exists!\n", portName);
+			//wprintf(L"%s exists!\n", portName);
 			//strValue 目标
 			lstrcpyW(paraPath, EUSB_KEYNAME);
 			lstrcpyW(&paraPath[lstrlenW(paraPath)], _T("\\"));
@@ -71,11 +73,11 @@ vector<string> QueryEUSBPort()
 
 			if (QueryRegKey(paraPath, _T("PortName"), strValue, MAX_PATH) == false)
 			{
-				debug("open USB Port Parameters registry key failed !");
+				//debug("open USB Port Parameters registry key failed !");
 				continue;
 			}
 
-			//w//printf(L"paraPath: %s\n", paraPath);
+			//wprintf(L"paraPath: %s\n", paraPath);
 
 			//WideCharToMultiByte(CP_ACP, 0, (LPCWCH)valueName, -1, strValue, MAX_PATH, NULL, NULL);
 			COM.push_back(strValue);
@@ -95,7 +97,7 @@ vector<string> QuerySerialPort()
 	LPCTSTR lpSubKey = SERIALPATH;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
 	{
-		debug("open registry key failed !");
+		//debug("open registry key failed !");
 		RegCloseKey(hKey); //关闭注册表
 		return COM;
 	}
@@ -117,7 +119,8 @@ vector<string> QuerySerialPort()
 		status = RegEnumValue(hKey, dwIndex++, valueName, &dwSizeValueName, NULL, &Type, portName, &dwSizeofPortName);
 		if ((status == ERROR_SUCCESS))
 		{
-			//w//printf(L"%s exists!\n", portName);
+			//w//
+			// (L"%s exists!\n", portName);
 			//strValue 目标
 			WideCharToMultiByte(CP_ACP, 0, (LPCWCH)portName, -1, strValue, length, NULL, NULL);
 			COM.push_back(strValue);

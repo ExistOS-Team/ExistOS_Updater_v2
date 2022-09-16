@@ -240,135 +240,114 @@ bool startWindow::startUpdate(const QList<int>& work)
 {
 	updWindow->clear();
 	updWindow->show();
-	updWindow->addLine("Starting update...");
+	updWindow->addLine("Start update...");
 
-	int exitCode;
+	if (link_mode == HOSTLINK_MODE) {
+		TCHAR* argv[2];
+		argv[0] = (TCHAR*)TEXT("-f");
+		argv[1] = (TCHAR*)reinterpret_cast<const wchar_t*>(ui->OSLoader_path->text().utf16());
+		updWindow->addLine("Sending OS Loader to calculator RAM...");
+		int exitCode = _tmain(2, argv);
+		updWindow->addLine("Finished with code " + QString::number(exitCode) + ".");
+		if (exitCode != 0) {
+			updWindow->addLine("ERROR: Failed to send OS Loader to calculator RAM.");
+			return false;
+		}
+
+		updWindow->addLine("Reboot and reconnect... Please wait. ");
+		//updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
+
+		for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
+			Sleep(REBOOT_INTERVAL);	//reboot interval
+			if (searchForDevices() == EDB_BIN) break;
+		}
+
+		if (link_mode != EDB_BIN) return false;
+
+		updWindow->addLine("Device found.");
+	}
+
 
 	for (int i = 0; i < work.size(); i++) {
-		switch (link_mode)
+		flashImg item;
+		errno_t ret;
+		edb.open(EDB_MODE_BIN);
+		switch (work.at(i))
 		{
-		case 1:     //recovery mode
-			TCHAR* argv[2];
-			argv[0] = (TCHAR*)TEXT("-f");
-			argv[1] = (TCHAR*)reinterpret_cast<const wchar_t*>(ui->OSLoader_path->text().utf16());
-			updWindow->addLine("Sending OS Loader to calculator RAM...");
-			exitCode = _tmain(2, argv);
-			updWindow->addLine("Finished with code " + QString::number(exitCode) + ".");
-			if (exitCode != 0) {
-				updWindow->addLine("ERROR: Failed to send OS Loader to calculator RAM.");
+		case 1:     //update system
+			memset(&item, 0, sizeof(item));
+			ret = fopen_s(&item.f, ui->System_path->text().toLocal8Bit().data(), "rb");
+			if (ret != 0) {
+				updWindow->addLine("ERROR: Can not open file.");
+				return false;
+			}
+			item.filename = ui->System_path->text().toLocal8Bit().data();
+			item.toPage = page_System;
+			item.bootImg = false;
+			updWindow->addLine("Flashing system to page " + QString::number(page_System) + ".");
+			imglist.push_back(item);
+			edb.reset(EDB_MODE_TEXT);
+			if (!edb.ping()) {
+				updWindow->addLine("ERROR: Device no response.");
 				return false;
 			}
 
-			updWindow->addLine("Reboot and reconnect... Please wait. ");
-			//updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
+			//edb.vm_suspend();
+			//edb.mscmode();
 
-			for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
-				Sleep(REBOOT_INTERVAL);	//reboot interval
-				if (searchForDevices() == EDB_BIN) break;
-			}
+			edb.vm_suspend();
+			for (flashImg& item : imglist) edb.flash(item);
 
-			if (link_mode == EDB_BIN) {
-				if (work[0] != UPDATE_OSLOADER) {
-					startUpdate({ UPDATE_OSLOADER, UPDATE_SYSTEM });
-				}
-				else
-				{
-					startUpdate(work);
-				}
-			}
-			else {
-				return false;
-			}
+			updWindow->addLine("Device rebooting...");
+			edb.reboot();
+			edb.close();
 			break;
-		case 3:     //edb bin mode
-			flashImg item;
-			errno_t ret;
-			edb.open(EDB_MODE_BIN);
-			switch (work.at(i))
-			{
-			case 1:     //update system
-				memset(&item, 0, sizeof(item));
+		case 2:     //update OSLoader
+			memset(&item, 0, sizeof(item));
 
-				ret = fopen_s(&item.f, ui->System_path->text().toLocal8Bit().data(), "rb");
-				if (ret != 0) {
-					updWindow->addLine("ERROR: Can not open file. Make sure you select the correct file.");
-					return false;
-				}
-
-				item.filename = ui->System_path->text().toLocal8Bit().data();
-				item.toPage = page_System;
-				item.bootImg = false;
-				updWindow->addLine("Flashing system to page " + QString::number(page_System) + ".");
-				imglist.push_back(item);
-				edb.reset(EDB_MODE_TEXT);
-				if (!edb.ping()) {
-					updWindow->addLine("ERROR: Device no response.");
-					return false;
-				}
-
-				//edb.vm_suspend();
-				//edb.mscmode();
-
-				edb.vm_suspend();
-				for (flashImg& item : imglist)
-				{
-					edb.flash(item);
-					//updWindow->addLine(QString::number(fclose(item.f)));
-				}
-
-				updWindow->addLine("Rebooting...");
-				edb.reboot();
-				edb.close();
-
-				break;
-			case 2:     //update OSLoader
-				memset(&item, 0, sizeof(item));
-
-				ret = fopen_s(&item.f, ui->OSLoader_path->text().toLocal8Bit().data(), "rb");
-				if (ret != 0) {
-					updWindow->addLine("ERROR: Can not open file. Make sure you selected the correct file.");
-					return false;
-				}
-
-				item.filename = ui->OSLoader_path->text().toLocal8Bit().data();
-				item.toPage = page_OSLoader;
-				item.bootImg = true;
-				updWindow->addLine("Flashing OS Loader to page " + QString::number(page_OSLoader) + ".");
-				imglist.push_back(item);
-				edb.reset(EDB_MODE_TEXT);
-				if (!edb.ping()) {
-					updWindow->addLine("ERROR: Device no response.");
-					return false;
-				}
-
-				edb.vm_suspend();
-				for (flashImg& item : imglist)
-				{
-					edb.flash(item);
-				}
-
-				updWindow->addLine("Rebooting...");
-				edb.reboot();
-				edb.close();
-
-				break;
-			default:
+			ret = fopen_s(&item.f, ui->OSLoader_path->text().toLocal8Bit().data(), "rb");
+			if (ret != 0) {
+				updWindow->addLine("ERROR: Can not open file.");
 				return false;
-				break;
 			}
+
+			item.filename = ui->OSLoader_path->text().toLocal8Bit().data();
+			item.toPage = page_OSLoader;
+			item.bootImg = true;
+			updWindow->addLine("Flashing OS Loader to page " + QString::number(page_OSLoader) + ".");
+			imglist.push_back(item);
+			edb.reset(EDB_MODE_TEXT);
+			if (!edb.ping()) {
+				updWindow->addLine("ERROR: Device no response.");
+				return false;
+			}
+
+			edb.vm_suspend();
+
+			for (flashImg& item : imglist) edb.flash(item);
+
+			updWindow->addLine("Device rebooting...");
+			edb.reboot();
+			edb.close();
 			break;
 		default:
 			return false;
 			break;
 		}
 
-		for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
+		for (int j = 0; j < REBOOT_RETRY_TIME; j++) {
 			Sleep(REBOOT_EDB_INTERVAL);
 			if (searchForDevices() == EDB_BIN) break;
 		}
 	}
 
-	return true;
+	if (link_mode == EDB_BIN) {
+		updWindow->addLine("Done.");
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 void startWindow::on_pushButton_update_O_clicked()
@@ -416,11 +395,6 @@ void startWindow::on_pushButton_update_S_clicked()
 
 void startWindow::on_pushButton_update_OandS_clicked()
 {
-	if (link_mode == HOSTLINK_MODE) {
-		on_pushButton_update_S_clicked();
-		return;
-	}
-
 	if (ui->OSLoader_path->text() == "") {
 		QMessageBox::critical(this, " ", "You have to select a file for OS Loader first.");
 	}

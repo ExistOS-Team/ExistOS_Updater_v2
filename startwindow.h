@@ -14,12 +14,12 @@
 #define HOSTLINK_VID 0x066F
 #define HOSTLINK_PID 0x3770
 
-#define REBOOT_INTERVAL 5000
+#define REBOOT_INTERVAL 4000
 #define REBOOT_EDB_INTERVAL 3000
 #define REBOOT_RETRY_TIME 3
 
 //define texts//
-constexpr auto VERSION                           =     "ver 1.0.3.3";
+constexpr auto VERSION                           =     "v1.0.4";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";

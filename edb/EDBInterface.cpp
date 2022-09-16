@@ -249,6 +249,7 @@ int EDBInterface::flash(flashImg item)
 			return false;
 		}
 
+		/*
 		if (page_cnt % 200 == 0) {
 			long long speed = BIN_BLOCK_SIZE / (getTime() - st);
 			//cout << "Upload: " << ftell(item.f) << "/" << fsize;
@@ -257,6 +258,7 @@ int EDBInterface::flash(flashImg item)
 			//cout << "  remaining:" << (fsize - ftell(item.f)) / speed / 1000 << "s        \r";
 			fflush(stdout);
 		}
+		*/
 
 
 		page_cnt += BIN_BLOCK_SIZE / 2048;
