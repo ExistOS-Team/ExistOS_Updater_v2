@@ -3,6 +3,8 @@
 
 #include <QDialog>
 #include <QMessageBox>
+#include <QUrl>
+#include <QDesktopServices>
 
 namespace Ui {
 class About;
@@ -19,6 +21,7 @@ public:
 private slots:
     void on_button_About_Qt_clicked();
     void on_button_OK_clicked();
+    void on_button_Website_clicked();
 
 private:
     Ui::About *ui;

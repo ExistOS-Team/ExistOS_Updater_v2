@@ -7,9 +7,9 @@ Options::Options(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle("Advanced Options");
-    QStringList edbModes = {
-        "Text Mode",
-        "Bin Mode"
+    const QStringList edbModes = {
+        "Serial  (Low speed)",
+        "USB  (High speed)"
     };
     ui->comboBox_edb_mode->addItems(edbModes);
     //setWindowFlag(Qt::SubWindow);

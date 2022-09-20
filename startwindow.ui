@@ -200,6 +200,9 @@
                <height>64</height>
               </size>
              </property>
+             <property name="styleSheet">
+              <string notr="true">background: transparent;border:0px</string>
+             </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
              </property>
@@ -214,6 +217,24 @@
              </property>
              <property name="sizeAdjustPolicy">
               <enum>QAbstractScrollArea::AdjustToContents</enum>
+             </property>
+             <property name="backgroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="0">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="foregroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="0">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
              </property>
              <property name="interactive">
               <bool>false</bool>
@@ -258,6 +279,9 @@
                <height>64</height>
               </size>
              </property>
+             <property name="styleSheet">
+              <string notr="true">background: transparent;border:0px</string>
+             </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
              </property>
@@ -269,6 +293,24 @@
              </property>
              <property name="sizeAdjustPolicy">
               <enum>QAbstractScrollArea::AdjustToContents</enum>
+             </property>
+             <property name="backgroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="0">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="foregroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="0">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
              </property>
             </widget>
            </item>
@@ -310,6 +352,9 @@
                <height>64</height>
               </size>
              </property>
+             <property name="styleSheet">
+              <string notr="true">background: transparent;border:0px</string>
+             </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
              </property>
@@ -321,6 +366,24 @@
              </property>
              <property name="sizeAdjustPolicy">
               <enum>QAbstractScrollArea::AdjustToContents</enum>
+             </property>
+             <property name="backgroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="0">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="foregroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="0">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
              </property>
             </widget>
            </item>

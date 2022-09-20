@@ -18,7 +18,10 @@ public:
 
     void addLine(const QString &text);
     void clear();
+    void refresh();
 
+    void setProgressBarVisible(bool isVisible);
+    void setProgressBarValue(int n);
 private:
     Ui::updateWindow *ui;
 

@@ -23,3 +23,7 @@ void About::on_button_OK_clicked() {
     this->hide();
 }
 
+void About::on_button_Website_clicked() {
+    QDesktopServices::openUrl(QUrl("https://github.com/ExistOS-Team", QUrl::TolerantMode));
+}
+

@@ -20,7 +20,7 @@ startWindow::startWindow(QWidget* parent)
 	ui->graphicsView_S->setScene(image_System);
 	ui->graphicsView_OandS->setScene(image_OSLoader_System);
 	ui->label->setText(VERSION);
-	ui->lineEdit_status->setText(link_texts[link_mode]);
+	ui->lineEdit_status->setText(TEXT_DEVICE_DISCONNECTED);
 
 	ui->pushButton_update_O->setDisabled(true);
 	ui->pushButton_update_OandS->setDisabled(true);
@@ -94,7 +94,6 @@ bool startWindow::searchRecoveryModeDevice() {
 		return false;
 	}
 
-
 	struct libusb_device* dev = nullptr;
 	struct libusb_device_handle* dev_hdl = nullptr;
 	struct libusb_device_descriptor dev_dsp;
@@ -167,6 +166,15 @@ int startWindow::searchForDevices() {
 	}
 	else {
 		//hostlink mode device not found:
+		if (edb.open(EDB_MODE_BIN)) {
+			link_mode = EDB_BIN;
+			edb.close();
+		}
+		else {
+			link_mode = UNCONNECT_MODE;
+		}
+
+		/*
 		switch (edbMode)
 		{
 		case EDB_BIN:
@@ -190,9 +198,23 @@ int startWindow::searchForDevices() {
 		default:
 			break;
 		}
+		*/
 	}
 
-	ui->lineEdit_status->setText(link_texts[link_mode]);
+	switch (link_mode)
+	{
+	case HOSTLINK_MODE:
+		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_HOSTLINK);
+		break;
+	case EDB_BIN:
+		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_EDB_BIN);
+		break;
+	case UNCONNECT_MODE:
+		ui->lineEdit_status->setText(TEXT_DEVICE_DISCONNECTED);
+		break;
+	default:
+		break;
+	}
 
 	switch (link_mode)
 	{
@@ -201,9 +223,6 @@ int startWindow::searchForDevices() {
 		break;
 	case HOSTLINK_MODE:
 		setButtonStatus(true, true, true);
-		break;
-	case EDB_TEXT:
-		setButtonStatus(false, false, false);
 		break;
 	case EDB_BIN:
 		setButtonStatus(true, true, true);
@@ -239,7 +258,9 @@ void startWindow::getReturnData(int OSLoader, int System, int edb) {
 bool startWindow::startUpdate(const QList<int>& work)
 {
 	updWindow->clear();
+	updWindow->setProgressBarVisible(false);
 	updWindow->show();
+
 	updWindow->addLine("Start update...");
 
 	if (link_mode == HOSTLINK_MODE) {
@@ -267,11 +288,24 @@ bool startWindow::startUpdate(const QList<int>& work)
 		updWindow->addLine("Device found.");
 	}
 
-
 	for (int i = 0; i < work.size(); i++) {
 		flashImg item;
 		errno_t ret;
-		edb.open(EDB_MODE_BIN);
+
+		//open edb connection
+		if (edbMode == EDB_BIN) {
+			edb.open(EDB_MODE_BIN);
+			updWindow->addLine("Use USB mode to flash.");
+		}
+		else if (edbMode == EDB_TEXT) {
+			edb.open(EDB_MODE_TEXT);
+			updWindow->addLine("Use Serial mode to flash.");
+		}
+
+		//set up callback function
+		shared_ptr<startWindow> self = make_shared<startWindow>();
+		callBack cb = bind(&startWindow::refreshStatus, self);
+
 		switch (work.at(i))
 		{
 		case 1:     //update system
@@ -292,11 +326,8 @@ bool startWindow::startUpdate(const QList<int>& work)
 				return false;
 			}
 
-			//edb.vm_suspend();
-			//edb.mscmode();
-
 			edb.vm_suspend();
-			for (flashImg& item : imglist) edb.flash(item);
+			edb.flash(item, cb);
 
 			updWindow->addLine("Device rebooting...");
 			edb.reboot();
@@ -324,7 +355,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 
 			edb.vm_suspend();
 
-			for (flashImg& item : imglist) edb.flash(item);
+			edb.flash(item, cb);
 
 			updWindow->addLine("Device rebooting...");
 			edb.reboot();
@@ -415,4 +446,35 @@ void startWindow::on_pushButton_update_OandS_clicked()
 	}
 	updWindow->hide();
 	searchForDevices();
+}
+
+void startWindow::refreshStatus() {
+	updWindow->clear();
+	//updWindow->setProgressBarVisible(true);
+
+	//updWindow->setProgressBarValue(12);
+	//if (uploadedSize / fsize > 0.5)updWindow->setProgressBarValue(24);
+	//updWindow->repaint();
+	//updWindow->setProgressBarValue(100);
+	int per = int((double(uploadedSize) / double(fsize)) * 100);
+	updWindow->setProgressBarValue(per);
+	updWindow->setWindowTitle("Flashing...");
+	updWindow->addLine(
+		"\n================================\nSpeed: " +
+		QString::number(speed) + "KB/s\n" +
+		"Uploaded Size: " + QString::number(uploadedSize) + "\n" +
+		"Page: " + QString::number(pageNow) + "\n" +
+		"Block: " + QString::number(blockNow) +
+		"\n================================");
+
+	//updWindow->setProgressBarValue((uploadedSize / fsize) * 100);
+
+	updWindow->refresh();
+	/*
+	QMessageBox::information(this, " ", "Speed: " + QString::number(speed) + "KB/s\n" +
+		"Uploaded Size: " + QString::number(uploadedSize) + "\n" +
+		"Page: " + QString::number(pageNow) + "\n" +
+		"Block: " + QString::number(blockNow));
+	*/
+	
 }

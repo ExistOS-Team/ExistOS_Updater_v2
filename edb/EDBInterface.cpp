@@ -7,6 +7,9 @@
 #include <time.h>
 using namespace std;
 
+
+unsigned long long speed, uploadedSize, pageNow, blockNow, fsize;
+
 long long getTime()
 {
 	return GetTickCount64();
@@ -172,7 +175,7 @@ bool EDBInterface::eraseBlock(unsigned int block)
 }
 
 
-int EDBInterface::flash(flashImg item)
+int EDBInterface::flash(flashImg item, const callBack& refreshStatus)
 {
 	char cmdbuf[64];
 	size_t cnt;
@@ -191,7 +194,7 @@ int EDBInterface::flash(flashImg item)
 	}
 	//cout << "Writing: " << item.filename << "..." << endl;
 	fseek(item.f, 0, SEEK_END);
-	size_t fsize = ftell(item.f);
+	fsize = ftell(item.f);
 	uint8_t chksum;
 	uint32_t rcshkdum;
 	long long st;
@@ -249,17 +252,22 @@ int EDBInterface::flash(flashImg item)
 			return false;
 		}
 
-		/*
-		if (page_cnt % 200 == 0) {
-			long long speed = BIN_BLOCK_SIZE / (getTime() - st);
+		if (page_cnt % 10 == 0) {
+
+			speed = (getTime() - st) == 0 ? 0 : BIN_BLOCK_SIZE / (getTime() - st);
+			uploadedSize = ftell(item.f);
+			pageNow = page_cnt;
+			blockNow = block_cnt;
+
+			refreshStatus();	//callback function to send status back.
+
 			//cout << "Upload: " << ftell(item.f) << "/" << fsize;
 			//cout << " Page:" << page_cnt << " Block:" << block_cnt << " ";
 			//printf(" chksum:%02x==%02x, %lld KB/s", chksum, rcshkdum, speed);
 			//cout << "  remaining:" << (fsize - ftell(item.f)) / speed / 1000 << "s        \r";
-			fflush(stdout);
-		}
-		*/
+			//fflush(stdout);
 
+		}
 
 		page_cnt += BIN_BLOCK_SIZE / 2048;
 		last_block = block_cnt;

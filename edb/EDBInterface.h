@@ -3,6 +3,9 @@
 
 #include "CComHelper.h"
 #include "WinReg.h"
+#include <functional>
+
+typedef std::function<void()> callBack;
 
 
 //#define INFO(fmt, ...) printf(fmt, __VA_ARGS__)
@@ -48,6 +51,7 @@ private:
 	HANDLE hDATf = NULL;
 	char wrBuf[512];
 
+
 public:
 	void reset(bool mode);
 	bool waitStr(char* str);
@@ -55,7 +59,7 @@ public:
 	bool wrDat(char* dat, size_t len);
 	bool rdDat(char* dat, size_t len, size_t* rbcnt);
 	bool eraseBlock(unsigned int block);
-	int flash(flashImg item);
+	int flash(flashImg item, const callBack& refreshStatus);
 	void reboot();
 	void vm_suspend();
 	void vm_resume();
@@ -64,4 +68,14 @@ public:
 	bool ping();
 	void close();
 	bool open(bool mode);
+
+	//long getSpeed() { return speed; };
+	//long getUploadedSize() { return uploadedSize; };
+	//long getPageNow() { return pageNow; };
+	//long getBlockNow() { return blockNow; };
+
+
+
+	//void returnFlashProgress(long long speed, uint32_t pageNow, long uploadedSize);
+
 };

@@ -19,14 +19,16 @@
 #define REBOOT_RETRY_TIME 3
 
 //define texts//
-constexpr auto VERSION                           =     "v1.0.4";
+constexpr auto VERSION                           =     "v1.0.4.1";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
-constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";
-constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [Bin Mode EDB]";
+//constexpr auto TEXT_DEVICE_CONNECTED_EDB_TEXT    =     "Device Connected [Text Mode EDB]";
+constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [EDB Mode]";
 //constexpr auto TEXT_SEARCHING                    =     "Searching for Devices...";
 //constexpr auto TEXT_UPDATING                     =     "Updating...  DO NOT DISCONNECT";
 ////////////////
+
+extern unsigned long long speed, uploadedSize, pageNow, blockNow, fsize;		//edb status
 
 //EDB includes//
 #include <stdint.h>
@@ -55,7 +57,9 @@ constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [Bin Mo
 #include <options.h>
 #include <wait.h>
 
+#include <functional>
 
+typedef std::function<void()> callBack;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class startWindow; }
@@ -88,13 +92,6 @@ private:
 
     int link_mode = UNCONNECT_MODE;
 
-    const QStringList link_texts = {
-        TEXT_DEVICE_DISCONNECTED,
-        TEXT_DEVICE_CONNECTED_HOSTLINK,
-        TEXT_DEVICE_CONNECTED_EDB_TEXT,
-        TEXT_DEVICE_CONNECTED_EDB_BIN
-    };
-
     //edb things//
     vector<flashImg> imglist;
     EDBInterface edb;
@@ -106,7 +103,9 @@ private:
 
     bool searchRecoveryModeDevice();
 
-    int searchForDevices();
+    int searchForDevices(); 
+
+    void refreshStatus();
 
 private slots:
     void on_button_OSLoader_path_clicked();

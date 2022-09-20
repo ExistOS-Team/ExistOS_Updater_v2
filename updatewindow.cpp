@@ -32,3 +32,15 @@ void updateWindow::clear()
     ui->textEdit->clear();
 }
 
+void updateWindow::refresh() {
+    this->show();
+    qApp->processEvents();
+}
+
+void updateWindow::setProgressBarVisible(bool isVisible) {
+    ui->progressBar->setVisible(isVisible);
+}
+
+void updateWindow::setProgressBarValue(int n) {
+    ui->progressBar->setValue(n);
+}
