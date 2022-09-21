@@ -17,9 +17,18 @@ LPCWSTR stringToLPCWSTR(std::string orig)
 
 bool CComHelper::Open(string com)
 {
-	hCom = CreateFile(stringToLPCWSTR(com), GENERIC_WRITE | GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+	//QMessageBox::information(nullptr, "", "Start CreateFileW()");	//for debug
 
-	if (hCom == (HANDLE)-1)
+	hCom = CreateFileW(
+		stringToLPCWSTR(com),
+		GENERIC_WRITE | GENERIC_READ,
+		0,
+		NULL,
+		OPEN_EXISTING,
+		0,
+		NULL);
+
+	if (hCom == (HANDLE) - 1)
 	{
 		return false;
 	}

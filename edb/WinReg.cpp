@@ -139,24 +139,28 @@ string findUsbSerialCom()
 {
 	vector<string> COMListAvailable = QuerySerialPort();
 	vector<string> EUSBPort = QueryEUSBPort();
-	string COM = "NONE";
+	std::string COM = "NONE";
 
+	/*
 	//cout << "EUSB Port:" << EUSBPort.size() << endl;
 	for (string& var : EUSBPort)
 	{
 		//cout << "[" << var << "]";
 	}
 	//cout << endl;
+	*/
 	if (EUSBPort.size() == 0) {
 		return COM;
 	}
 
+	/*
 	//cout << "COMListAvailable:" << COMListAvailable.size() << endl;
 	for (string& var : COMListAvailable)
 	{
 		//cout << "[" << var << "]";
 	}
 	//cout << endl;
+	*/
 
 	for (string& EUSB : EUSBPort)
 	{

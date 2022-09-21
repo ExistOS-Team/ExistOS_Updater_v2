@@ -68,14 +68,4 @@ public:
 	bool ping();
 	void close();
 	bool open(bool mode);
-
-	//long getSpeed() { return speed; };
-	//long getUploadedSize() { return uploadedSize; };
-	//long getPageNow() { return pageNow; };
-	//long getBlockNow() { return blockNow; };
-
-
-
-	//void returnFlashProgress(long long speed, uint32_t pageNow, long uploadedSize);
-
 };

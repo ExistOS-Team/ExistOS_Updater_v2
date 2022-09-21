@@ -1,5 +1,4 @@
 #include "EDBInterface.h"
-
 #include <stdint.h>
 #include <stdio.h>
 #include <iostream>
@@ -383,7 +382,10 @@ void EDBInterface::close()
 		CloseHandle(hDATf);
 	}
 	else {
-
+		com.SetRTS(false);
+		Sleep(20);
+		com.SetDTR(false);
+		com.Close();
 	}
 }
 
@@ -487,7 +489,7 @@ bool EDBInterface::open(bool mode)
 	else {
 
 
-		string COM = findUsbSerialCom();
+		std::string COM = findUsbSerialCom();
 		while (COM == "NONE")
 		{
 			//cout << "Waiting USB CDC Connect..." << endl;
@@ -495,6 +497,7 @@ bool EDBInterface::open(bool mode)
 			COM = findUsbSerialCom();
 		}
 		//cout << "Select:" << COM << endl;
+
 		if (com.Open(COM) == false)
 		{
 			//cout << "Open Serial Port:" << COM << " Failed.\n" << endl;

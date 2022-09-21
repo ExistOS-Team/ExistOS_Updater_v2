@@ -1,13 +1,13 @@
 #pragma once
-#include <windows.h>
+#include <Windows.h>
 #include <tchar.h>
 #include <stdio.h>
 #include <string>
 #include <vector>
 
-#include <string>
 #include <iostream>
-#include <vector>
+
+#include <QMessageBox>
 using namespace std;
 
 

@@ -12,6 +12,11 @@ startWindow::startWindow(QWidget* parent)
 	setWindowTitle("ExistOS Updater");
 	setWindowIcon(QIcon("image/icon.png"));
 
+	//init libusb
+	if (libusb_init(nullptr) != 0) {
+		QMessageBox::critical(this, " ", "Can not init libusb!");
+	}
+
 	image_OSLoader->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader.bmp").scaled(64, 64));
 	image_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_System.bmp").scaled(64, 64));
 	image_OSLoader_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader_System.bmp").scaled(64, 64));
@@ -76,7 +81,10 @@ startWindow::~startWindow()
 		ini->setValue(tr("/Statu/savePath"), false);
 	}
 
+	libusb_exit(nullptr);	//exit libusb
+
 	delete ui;
+	delete ini;
 	delete image_OSLoader;
 	delete image_OSLoader_System;
 	delete image_System;
@@ -84,16 +92,9 @@ startWindow::~startWindow()
 	delete updWindow;
 	delete optionsWindow;
 	delete waitWindow;
-	delete ini;
 }
 
 bool startWindow::searchRecoveryModeDevice() {
-	//init libusb
-	if (libusb_init(nullptr) != 0) {
-		QMessageBox::critical(this, " ", "Can not init libusb!");
-		return false;
-	}
-
 	struct libusb_device* dev = nullptr;
 	struct libusb_device_handle* dev_hdl = nullptr;
 	struct libusb_device_descriptor dev_dsp;
@@ -113,7 +114,6 @@ bool startWindow::searchRecoveryModeDevice() {
 
 	libusb_close(dev_hdl);
 
-	libusb_exit(nullptr);	//exit libusb
 	return isFound;
 }
 
@@ -168,11 +168,11 @@ int startWindow::searchForDevices() {
 		//hostlink mode device not found:
 		if (edb.open(EDB_MODE_BIN)) {
 			link_mode = EDB_BIN;
-			edb.close();
 		}
 		else {
 			link_mode = UNCONNECT_MODE;
 		}
+		edb.close();
 
 		/*
 		switch (edbMode)
@@ -264,6 +264,7 @@ bool startWindow::startUpdate(const QList<int>& work)
 	updWindow->addLine("Start update...");
 
 	if (link_mode == HOSTLINK_MODE) {
+		//use sbloader to send OSLoader to calculator RAM.
 		TCHAR* argv[2];
 		argv[0] = (TCHAR*)TEXT("-f");
 		argv[1] = (TCHAR*)reinterpret_cast<const wchar_t*>(ui->OSLoader_path->text().utf16());
@@ -288,18 +289,29 @@ bool startWindow::startUpdate(const QList<int>& work)
 		updWindow->addLine("Device found.");
 	}
 
+	flashImg item;
+	errno_t ret;
 	for (int i = 0; i < work.size(); i++) {
-		flashImg item;
-		errno_t ret;
 
 		//open edb connection
 		if (edbMode == EDB_BIN) {
-			edb.open(EDB_MODE_BIN);
-			updWindow->addLine("Use USB mode to flash.");
+			if (edb.open(EDB_MODE_BIN)) {
+				updWindow->addLine("Use USB mode to flash.");
+			}
+			else {
+				updWindow->addLine("ERROR: Can not open EDB connection.");
+				return false;
+			}
+
 		}
 		else if (edbMode == EDB_TEXT) {
-			edb.open(EDB_MODE_TEXT);
-			updWindow->addLine("Use Serial mode to flash.");
+			if (edb.open(EDB_MODE_TEXT)) {
+				updWindow->addLine("Use Serial mode to flash.");
+			}
+			else {
+				updWindow->addLine("ERROR: Can not open EDB connection.");
+				return false;
+			}
 		}
 
 		//set up callback function
@@ -315,11 +327,14 @@ bool startWindow::startUpdate(const QList<int>& work)
 				updWindow->addLine("ERROR: Can not open file.");
 				return false;
 			}
+
 			item.filename = ui->System_path->text().toLocal8Bit().data();
 			item.toPage = page_System;
 			item.bootImg = false;
+
 			updWindow->addLine("Flashing system to page " + QString::number(page_System) + ".");
-			imglist.push_back(item);
+
+			/*
 			edb.reset(EDB_MODE_TEXT);
 			if (!edb.ping()) {
 				updWindow->addLine("ERROR: Device no response.");
@@ -328,10 +343,12 @@ bool startWindow::startUpdate(const QList<int>& work)
 
 			edb.vm_suspend();
 			edb.flash(item, cb);
+			fclose(item.f);
 
 			updWindow->addLine("Device rebooting...");
 			edb.reboot();
 			edb.close();
+			*/
 			break;
 		case 2:     //update OSLoader
 			memset(&item, 0, sizeof(item));
@@ -345,8 +362,10 @@ bool startWindow::startUpdate(const QList<int>& work)
 			item.filename = ui->OSLoader_path->text().toLocal8Bit().data();
 			item.toPage = page_OSLoader;
 			item.bootImg = true;
+
 			updWindow->addLine("Flashing OS Loader to page " + QString::number(page_OSLoader) + ".");
-			imglist.push_back(item);
+
+			/*
 			edb.reset(EDB_MODE_TEXT);
 			if (!edb.ping()) {
 				updWindow->addLine("ERROR: Device no response.");
@@ -354,17 +373,32 @@ bool startWindow::startUpdate(const QList<int>& work)
 			}
 
 			edb.vm_suspend();
-
 			edb.flash(item, cb);
+			fclose(item.f);
 
 			updWindow->addLine("Device rebooting...");
 			edb.reboot();
 			edb.close();
+			*/
 			break;
 		default:
 			return false;
 			break;
 		}
+
+		edb.reset(EDB_MODE_TEXT);
+		if (!edb.ping()) {
+			updWindow->addLine("ERROR: Device no response.");
+			return false;
+		}
+
+		edb.vm_suspend();
+		edb.flash(item, cb);
+		fclose(item.f);
+
+		updWindow->addLine("Device rebooting...");
+		edb.reboot();
+		edb.close();
 
 		for (int j = 0; j < REBOOT_RETRY_TIME; j++) {
 			Sleep(REBOOT_EDB_INTERVAL);
