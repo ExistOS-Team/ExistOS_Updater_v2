@@ -19,16 +19,15 @@ bool CComHelper::Open(string com)
 {
 	//QMessageBox::information(nullptr, "", "Start CreateFileW()");	//for debug
 
-	hCom = CreateFileW(
-		stringToLPCWSTR(com),
-		GENERIC_WRITE | GENERIC_READ,
+	hCom = CreateFileW(stringToLPCWSTR(com),
+		(GENERIC_WRITE | GENERIC_READ),
 		0,
 		NULL,
 		OPEN_EXISTING,
 		0,
 		NULL);
 
-	if (hCom == (HANDLE) - 1)
+	if (hCom == INVALID_HANDLE_VALUE)
 	{
 		return false;
 	}

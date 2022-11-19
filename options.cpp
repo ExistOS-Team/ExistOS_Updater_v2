@@ -7,11 +7,6 @@ Options::Options(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle("Advanced Options");
-    const QStringList edbModes = {
-        "Serial  (Low speed)",
-        "USB  (High speed)"
-    };
-    ui->comboBox_edb_mode->addItems(edbModes);
     //setWindowFlag(Qt::SubWindow);
 }
 
@@ -20,15 +15,14 @@ Options::~Options()
     delete ui;
 }
 
-void Options::set(const int &page_OSLoader, const int &page_System, const int &edbMode){
+void Options::set(const int &page_OSLoader, const int &page_System){
     ui->spinBox_OSLoader_Page->setValue(page_OSLoader);
     ui->spinBox_System_Page->setValue(page_System);
-    ui->comboBox_edb_mode->setCurrentIndex(edbMode - 2);
 }
 
 void Options::on_buttonBox_accepted()
 {
-    emit returnData(ui->spinBox_OSLoader_Page->value(), ui->spinBox_System_Page->value(), ui->comboBox_edb_mode->currentIndex() + 2);
+    emit returnData(ui->spinBox_OSLoader_Page->value(), ui->spinBox_System_Page->value());
 }
 
 

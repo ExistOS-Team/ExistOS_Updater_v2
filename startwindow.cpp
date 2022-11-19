@@ -12,11 +12,6 @@ startWindow::startWindow(QWidget* parent)
 	setWindowTitle("ExistOS Updater");
 	setWindowIcon(QIcon("image/icon.png"));
 
-	//init libusb
-	if (libusb_init(nullptr) != 0) {
-		QMessageBox::critical(this, " ", "Can not init libusb!");
-	}
-
 	image_OSLoader->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader.bmp").scaled(64, 64));
 	image_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_System.bmp").scaled(64, 64));
 	image_OSLoader_System->addPixmap(QPixmap(QDir::currentPath() + "/image/update_OSLoader_System.bmp").scaled(64, 64));
@@ -31,10 +26,10 @@ startWindow::startWindow(QWidget* parent)
 	ui->pushButton_update_OandS->setDisabled(true);
 	ui->pushButton_update_S->setDisabled(true);
 
-	QFileInfo* ini_file = new QFileInfo;
-	ini_file->setFile("config.ini");
+	QFileInfo ini_file;
+	ini_file.setFile("config.ini");
 
-	if (!ini_file->exists()) {
+	if (!ini_file.exists()) {
 
 		ini->beginGroup(tr("Path"));
 		ini->setValue(tr("osloader"), "");
@@ -63,9 +58,11 @@ startWindow::startWindow(QWidget* parent)
 			ui->checkBox_remember_path->setChecked(true);
 		}
 	}
-	delete ini_file;
 
-	connect(optionsWindow, SIGNAL(returnData(int, int, int)), this, SLOT(getReturnData(int, int, int)));
+	connect(optionsWindow, SIGNAL(returnData(int, int)), this, SLOT(getReturnData(int, int)));
+
+	updWindow->moveToThread(&deviceUpdateThread);
+
 }
 
 startWindow::~startWindow()
@@ -81,8 +78,6 @@ startWindow::~startWindow()
 		ini->setValue(tr("/Statu/savePath"), false);
 	}
 
-	libusb_exit(nullptr);	//exit libusb
-
 	delete ui;
 	delete ini;
 	delete image_OSLoader;
@@ -91,31 +86,9 @@ startWindow::~startWindow()
 	delete aboutWindow;
 	delete updWindow;
 	delete optionsWindow;
-	delete waitWindow;
 }
 
-bool startWindow::searchRecoveryModeDevice() {
-	struct libusb_device* dev = nullptr;
-	struct libusb_device_handle* dev_hdl = nullptr;
-	struct libusb_device_descriptor dev_dsp;
-	bool isFound = true;
 
-	dev_hdl = libusb_open_device_with_vid_pid(nullptr, HOSTLINK_VID, HOSTLINK_PID);
-
-	if (dev_hdl != nullptr) {
-		dev = libusb_get_device(dev_hdl);
-		if (libusb_get_device_descriptor(dev, &dev_dsp) != 0) {
-			isFound = false;
-		}
-	}
-	else {
-		isFound = false;
-	}
-
-	libusb_close(dev_hdl);
-
-	return isFound;
-}
 
 void startWindow::on_button_OSLoader_path_clicked()
 {
@@ -152,94 +125,14 @@ void startWindow::on_pushButton_about_clicked()
 
 void startWindow::on_pushButton_options_clicked()
 {
-	optionsWindow->set(page_OSLoader, page_System, edbMode);
+	optionsWindow->set(page_OSLoader, page_System);
 	optionsWindow->exec();
-}
-
-int startWindow::searchForDevices() {
-	ui->pushButton_refresh->setDisabled(true);
-	waitWindow->show();
-	waitWindow->refresh();
-
-	if (searchRecoveryModeDevice()) {
-		link_mode = HOSTLINK_MODE;
-	}
-	else {
-		//hostlink mode device not found:
-		if (edb.open(EDB_MODE_BIN)) {
-			link_mode = EDB_BIN;
-		}
-		else {
-			link_mode = UNCONNECT_MODE;
-		}
-		edb.close();
-
-		/*
-		switch (edbMode)
-		{
-		case EDB_BIN:
-			if (edb.open(EDB_MODE_BIN)) {
-				link_mode = EDB_BIN;
-				edb.close();
-			}
-			else {
-				link_mode = UNCONNECT_MODE;
-			}
-			break;
-		case EDB_TEXT:
-			if (edb.open(EDB_MODE_TEXT)) {
-				link_mode = EDB_TEXT;
-				edb.close();
-			}
-			else {
-				link_mode = UNCONNECT_MODE;
-			}
-			break;
-		default:
-			break;
-		}
-		*/
-	}
-
-	switch (link_mode)
-	{
-	case HOSTLINK_MODE:
-		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_HOSTLINK);
-		break;
-	case EDB_BIN:
-		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_EDB_BIN);
-		break;
-	case UNCONNECT_MODE:
-		ui->lineEdit_status->setText(TEXT_DEVICE_DISCONNECTED);
-		break;
-	default:
-		break;
-	}
-
-	switch (link_mode)
-	{
-	case UNCONNECT_MODE:
-		setButtonStatus(false, false, false);
-		break;
-	case HOSTLINK_MODE:
-		setButtonStatus(true, true, true);
-		break;
-	case EDB_BIN:
-		setButtonStatus(true, true, true);
-		break;
-	default:
-		break;
-	}
-
-	waitWindow->hide();
-	ui->pushButton_refresh->setEnabled(true);
-
-	return link_mode;
 }
 
 void startWindow::on_pushButton_refresh_clicked()
 {
-	searchForDevices();
+	updWindow->moveWaitWindow(this->x(), this->y() - 64);
+	setStatus(updWindow->searchForDevices());
 }
 
 void startWindow::setButtonStatus(const bool& O, const bool& S, const bool& OandS)
@@ -249,170 +142,9 @@ void startWindow::setButtonStatus(const bool& O, const bool& S, const bool& Oand
 	ui->pushButton_update_S->setEnabled(OandS);
 }
 
-void startWindow::getReturnData(int OSLoader, int System, int edb) {
+void startWindow::getReturnData(int OSLoader, int System) {
 	page_OSLoader = OSLoader;
 	page_System = System;
-	edbMode = edb;
-}
-
-bool startWindow::startUpdate(const QList<int>& work)
-{
-	updWindow->clear();
-	updWindow->setProgressBarVisible(false);
-	updWindow->show();
-
-	updWindow->addLine("Start update...");
-
-	if (link_mode == HOSTLINK_MODE) {
-		//use sbloader to send OSLoader to calculator RAM.
-		TCHAR* argv[2];
-		argv[0] = (TCHAR*)TEXT("-f");
-		argv[1] = (TCHAR*)reinterpret_cast<const wchar_t*>(ui->OSLoader_path->text().utf16());
-		updWindow->addLine("Sending OS Loader to calculator RAM...");
-		int exitCode = _tmain(2, argv);
-		updWindow->addLine("Finished with code " + QString::number(exitCode) + ".");
-		if (exitCode != 0) {
-			updWindow->addLine("ERROR: Failed to send OS Loader to calculator RAM.");
-			return false;
-		}
-
-		updWindow->addLine("Reboot and reconnect... Please wait. ");
-		//updWindow->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
-
-		for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
-			Sleep(REBOOT_INTERVAL);	//reboot interval
-			if (searchForDevices() == EDB_BIN) break;
-		}
-
-		if (link_mode != EDB_BIN) return false;
-
-		updWindow->addLine("Device found.");
-	}
-
-	flashImg item;
-	errno_t ret;
-	for (int i = 0; i < work.size(); i++) {
-
-		//open edb connection
-		if (edbMode == EDB_BIN) {
-			if (edb.open(EDB_MODE_BIN)) {
-				updWindow->addLine("Use USB mode to flash.");
-			}
-			else {
-				updWindow->addLine("ERROR: Can not open EDB connection.");
-				return false;
-			}
-
-		}
-		else if (edbMode == EDB_TEXT) {
-			if (edb.open(EDB_MODE_TEXT)) {
-				updWindow->addLine("Use Serial mode to flash.");
-			}
-			else {
-				updWindow->addLine("ERROR: Can not open EDB connection.");
-				return false;
-			}
-		}
-
-		//set up callback function
-		shared_ptr<startWindow> self = make_shared<startWindow>();
-		callBack cb = bind(&startWindow::refreshStatus, self);
-
-		switch (work.at(i))
-		{
-		case 1:     //update system
-			memset(&item, 0, sizeof(item));
-			ret = fopen_s(&item.f, ui->System_path->text().toLocal8Bit().data(), "rb");
-			if (ret != 0) {
-				updWindow->addLine("ERROR: Can not open file.");
-				return false;
-			}
-
-			item.filename = ui->System_path->text().toLocal8Bit().data();
-			item.toPage = page_System;
-			item.bootImg = false;
-
-			updWindow->addLine("Flashing system to page " + QString::number(page_System) + ".");
-
-			/*
-			edb.reset(EDB_MODE_TEXT);
-			if (!edb.ping()) {
-				updWindow->addLine("ERROR: Device no response.");
-				return false;
-			}
-
-			edb.vm_suspend();
-			edb.flash(item, cb);
-			fclose(item.f);
-
-			updWindow->addLine("Device rebooting...");
-			edb.reboot();
-			edb.close();
-			*/
-			break;
-		case 2:     //update OSLoader
-			memset(&item, 0, sizeof(item));
-
-			ret = fopen_s(&item.f, ui->OSLoader_path->text().toLocal8Bit().data(), "rb");
-			if (ret != 0) {
-				updWindow->addLine("ERROR: Can not open file.");
-				return false;
-			}
-
-			item.filename = ui->OSLoader_path->text().toLocal8Bit().data();
-			item.toPage = page_OSLoader;
-			item.bootImg = true;
-
-			updWindow->addLine("Flashing OS Loader to page " + QString::number(page_OSLoader) + ".");
-
-			/*
-			edb.reset(EDB_MODE_TEXT);
-			if (!edb.ping()) {
-				updWindow->addLine("ERROR: Device no response.");
-				return false;
-			}
-
-			edb.vm_suspend();
-			edb.flash(item, cb);
-			fclose(item.f);
-
-			updWindow->addLine("Device rebooting...");
-			edb.reboot();
-			edb.close();
-			*/
-			break;
-		default:
-			return false;
-			break;
-		}
-
-		edb.reset(EDB_MODE_TEXT);
-		if (!edb.ping()) {
-			updWindow->addLine("ERROR: Device no response.");
-			return false;
-		}
-
-		edb.vm_suspend();
-		edb.flash(item, cb);
-		fclose(item.f);
-
-		updWindow->addLine("Device rebooting...");
-		edb.reboot();
-		edb.close();
-
-		for (int j = 0; j < REBOOT_RETRY_TIME; j++) {
-			Sleep(REBOOT_EDB_INTERVAL);
-			if (searchForDevices() == EDB_BIN) break;
-		}
-	}
-
-	if (link_mode == EDB_BIN) {
-		updWindow->addLine("Done.");
-		return true;
-	}
-	else {
-		return false;
-	}
 }
 
 void startWindow::on_pushButton_update_O_clicked()
@@ -422,7 +154,7 @@ void startWindow::on_pushButton_update_O_clicked()
 	}
 	else {
 		setButtonStatus(false, false, false);
-		if (startUpdate({ UPDATE_OSLOADER })) {
+		if (updateDevice({ UPDATE_OSLOADER })) {
 			QMessageBox::information(this, " ", "Update device successfully.");
 		}
 		else {
@@ -430,7 +162,7 @@ void startWindow::on_pushButton_update_O_clicked()
 		}
 	}
 	updWindow->hide();
-	searchForDevices();
+	setStatus(updWindow->searchForDevices());
 }
 
 void startWindow::on_pushButton_update_S_clicked()
@@ -447,7 +179,7 @@ void startWindow::on_pushButton_update_S_clicked()
 	}
 	else {
 		setButtonStatus(false, false, false);
-		if (startUpdate({ UPDATE_SYSTEM })) {
+		if (updateDevice({ UPDATE_SYSTEM })) {
 			QMessageBox::information(this, " ", "Update device successfully.");
 		}
 		else {
@@ -455,7 +187,7 @@ void startWindow::on_pushButton_update_S_clicked()
 		}
 	}
 	updWindow->hide();
-	searchForDevices();
+	setStatus(updWindow->searchForDevices());
 }
 
 void startWindow::on_pushButton_update_OandS_clicked()
@@ -469,7 +201,7 @@ void startWindow::on_pushButton_update_OandS_clicked()
 		}
 		else {
 			setButtonStatus(false, false, false);
-			if (startUpdate({ UPDATE_OSLOADER, UPDATE_SYSTEM })) {
+			if (updateDevice({ UPDATE_OSLOADER, UPDATE_SYSTEM })) {
 				QMessageBox::information(this, " ", "Update device successfully.");
 			}
 			else {
@@ -479,36 +211,29 @@ void startWindow::on_pushButton_update_OandS_clicked()
 		}
 	}
 	updWindow->hide();
-	searchForDevices();
+	setStatus(updWindow->searchForDevices());
 }
 
-void startWindow::refreshStatus() {
-	updWindow->clear();
-	//updWindow->setProgressBarVisible(true);
+void startWindow::setStatus(int mode){
+	switch (mode)
+	{
+	case HOSTLINK_MODE:
+		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_HOSTLINK);
+		setButtonStatus(true, true, true);
+		break;
+	case EDB_BIN:
+		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_EDB_BIN);
+		setButtonStatus(true, true, true);
+		break;
+	case UNCONNECT_MODE:
+		ui->lineEdit_status->setText(TEXT_DEVICE_DISCONNECTED);
+		setButtonStatus(false, false, false);
+		break;
+	default:
+		break;
+	}
+}
 
-	//updWindow->setProgressBarValue(12);
-	//if (uploadedSize / fsize > 0.5)updWindow->setProgressBarValue(24);
-	//updWindow->repaint();
-	//updWindow->setProgressBarValue(100);
-	int per = int((double(uploadedSize) / double(fsize)) * 100);
-	updWindow->setProgressBarValue(per);
-	updWindow->setWindowTitle("Flashing...");
-	updWindow->addLine(
-		"\n================================\nSpeed: " +
-		QString::number(speed) + "KB/s\n" +
-		"Uploaded Size: " + QString::number(uploadedSize) + "\n" +
-		"Page: " + QString::number(pageNow) + "\n" +
-		"Block: " + QString::number(blockNow) +
-		"\n================================");
-
-	//updWindow->setProgressBarValue((uploadedSize / fsize) * 100);
-
-	updWindow->refresh();
-	/*
-	QMessageBox::information(this, " ", "Speed: " + QString::number(speed) + "KB/s\n" +
-		"Uploaded Size: " + QString::number(uploadedSize) + "\n" +
-		"Page: " + QString::number(pageNow) + "\n" +
-		"Block: " + QString::number(blockNow));
-	*/
-	
+bool startWindow::updateDevice(const QList<int>& work) {
+	return updWindow->startUpdate(work, ui->OSLoader_path->text(), ui->System_path->text(), page_OSLoader, page_System);
 }

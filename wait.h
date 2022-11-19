@@ -2,6 +2,8 @@
 #define WAIT_H
 
 #include <QDialog>
+#include <QStyle>
+#include <QDesktopservices>
 
 namespace Ui {
 class wait;

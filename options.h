@@ -18,10 +18,10 @@ public:
     explicit Options(QWidget *parent = nullptr);
     ~Options();
 
-    void set(const int &page_OSLoader, const int &page_System, const int &edbMode);
+    void set(const int &page_OSLoader, const int &page_System);
 
 signals:
-    void returnData(int page_OSLoader, int page_System, int edbMode);
+    void returnData(int page_OSLoader, int page_System);
 
 private slots:
     void on_buttonBox_accepted();

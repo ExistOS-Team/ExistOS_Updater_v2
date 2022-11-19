@@ -17,4 +17,5 @@ wait::~wait()
 
 void wait::refresh() {
     qApp->processEvents();
+
 }

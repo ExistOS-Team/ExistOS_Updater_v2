@@ -25,7 +25,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -46,7 +46,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Page</string>
+         <string>Page Settings</string>
         </property>
        </widget>
       </item>
@@ -103,33 +103,6 @@
     </item>
     <item>
      <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QLabel" name="label_4">
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>EDB Flash method</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="comboBox_edb_mode"/>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <widget class="Line" name="line_2">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>

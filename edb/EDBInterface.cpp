@@ -382,9 +382,6 @@ void EDBInterface::close()
 		CloseHandle(hDATf);
 	}
 	else {
-		com.SetRTS(false);
-		Sleep(20);
-		com.SetDTR(false);
 		com.Close();
 	}
 }
@@ -497,6 +494,8 @@ bool EDBInterface::open(bool mode)
 			COM = findUsbSerialCom();
 		}
 		//cout << "Select:" << COM << endl;
+
+		//QMessageBox::information(nullptr, "", QString::fromStdString(COM));
 
 		if (com.Open(COM) == false)
 		{

@@ -1,5 +1,5 @@
 #pragma once
-#include "libusb/libusb.h"
+//#include "libusb/libusb.h"
 
 #include "CComHelper.h"
 #include "WinReg.h"
@@ -43,7 +43,7 @@ typedef struct flashImg
 class EDBInterface
 {
 private:
-	libusb_device_handle* usbdev = NULL; /* the device handle */
+	//libusb_device_handle* usbdev = NULL; /* the device handle */
 	bool USBHighSpeed = false;
 	CComHelper com;
 	char sendBuf[BIN_BLOCK_SIZE];
