@@ -11,11 +11,14 @@
 
 #define MAX_PAGE 65536
 
+#define REFRESH_INTERVAL 500
+
 //define texts//
-constexpr auto VERSION                           =     "v1.1.0";
+constexpr auto VERSION                           =     "v1.1.1";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [EDB Mode]";
+//constexpr auto TEXT_UPDATING                     =     "Updating... DO NOT DISCONNECT";
 ////////////////
 
 
@@ -30,6 +33,7 @@ constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [EDB Mo
 #include <QByteArray>
 #include <QSettings>
 #include <QThread>
+#include <QTimer>
 
 #include <about.h>
 #include <updatewindow.h>
@@ -54,7 +58,7 @@ public:
 
     void setStatus(int link_mode);
 
-    bool updateDevice(const QList<int>& work);
+    void updateDevice(const QList<int>& work);
 
 private:
     Ui::startWindow* ui;
@@ -69,6 +73,8 @@ private:
 
     QSettings* ini = new QSettings("config.ini", QSettings::IniFormat);
 
+    QTimer* refresh_timer = new QTimer;
+
     int page_OSLoader = DEFAULT_OSLOADER_PAGE;
     int page_System = DEFAULT_SYSTEM_PAGE;
 
@@ -79,10 +85,11 @@ private slots:
     void on_button_System_path_clicked();
     void on_pushButton_about_clicked();
     void on_pushButton_options_clicked();
-    void on_pushButton_refresh_clicked();
     void on_pushButton_update_O_clicked();
     void on_pushButton_update_S_clicked();
     void on_pushButton_update_OandS_clicked();
+
+    void refreshLinkStatus();
 
     void getReturnData(int OSLoader, int System);
 };

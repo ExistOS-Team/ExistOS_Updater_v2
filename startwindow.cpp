@@ -63,6 +63,12 @@ startWindow::startWindow(QWidget* parent)
 
 	updWindow->moveToThread(&deviceUpdateThread);
 
+	refresh_timer->setInterval(REFRESH_INTERVAL);
+
+	connect(refresh_timer, SIGNAL(timeout()), this, SLOT(refreshLinkStatus()));
+
+	refresh_timer->start();
+
 }
 
 startWindow::~startWindow()
@@ -80,6 +86,7 @@ startWindow::~startWindow()
 
 	delete ui;
 	delete ini;
+	delete refresh_timer;
 	delete image_OSLoader;
 	delete image_OSLoader_System;
 	delete image_System;
@@ -129,9 +136,7 @@ void startWindow::on_pushButton_options_clicked()
 	optionsWindow->exec();
 }
 
-void startWindow::on_pushButton_refresh_clicked()
-{
-	updWindow->moveWaitWindow(this->x(), this->y() - 64);
+void startWindow::refreshLinkStatus() {
 	setStatus(updWindow->searchForDevices());
 }
 
@@ -154,15 +159,9 @@ void startWindow::on_pushButton_update_O_clicked()
 	}
 	else {
 		setButtonStatus(false, false, false);
-		if (updateDevice({ UPDATE_OSLOADER })) {
-			QMessageBox::information(this, " ", "Update device successfully.");
-		}
-		else {
-			QMessageBox::critical(this, " ", "An error occurred while updating device.");
-		}
+		updateDevice({ UPDATE_OSLOADER });
 	}
 	updWindow->hide();
-	setStatus(updWindow->searchForDevices());
 }
 
 void startWindow::on_pushButton_update_S_clicked()
@@ -179,15 +178,9 @@ void startWindow::on_pushButton_update_S_clicked()
 	}
 	else {
 		setButtonStatus(false, false, false);
-		if (updateDevice({ UPDATE_SYSTEM })) {
-			QMessageBox::information(this, " ", "Update device successfully.");
-		}
-		else {
-			QMessageBox::critical(this, " ", "An error occurred while updating device.");
-		}
+		updateDevice({ UPDATE_SYSTEM });
 	}
 	updWindow->hide();
-	setStatus(updWindow->searchForDevices());
 }
 
 void startWindow::on_pushButton_update_OandS_clicked()
@@ -201,17 +194,10 @@ void startWindow::on_pushButton_update_OandS_clicked()
 		}
 		else {
 			setButtonStatus(false, false, false);
-			if (updateDevice({ UPDATE_OSLOADER, UPDATE_SYSTEM })) {
-				QMessageBox::information(this, " ", "Update device successfully.");
-			}
-			else {
-				QMessageBox::critical(this, " ", "An error occurred while updating device.");
-				
-			}
+			updateDevice({ UPDATE_OSLOADER, UPDATE_SYSTEM });
 		}
 	}
 	updWindow->hide();
-	setStatus(updWindow->searchForDevices());
 }
 
 void startWindow::setStatus(int mode){
@@ -234,6 +220,12 @@ void startWindow::setStatus(int mode){
 	}
 }
 
-bool startWindow::updateDevice(const QList<int>& work) {
-	return updWindow->startUpdate(work, ui->OSLoader_path->text(), ui->System_path->text(), page_OSLoader, page_System);
+void startWindow::updateDevice(const QList<int>& work) {
+	if (updWindow->startUpdate(work, ui->OSLoader_path->text(), ui->System_path->text(), page_OSLoader, page_System)) {
+		QMessageBox::information(this, " ", "Update device successfully.\n\nIt is safe and recommended to disconnect your calculator now.");
+	}
+	else {
+		QMessageBox::critical(this, " ", "Update device failed.\n\nAn error occurred while updating device.");
+	}
+
 }

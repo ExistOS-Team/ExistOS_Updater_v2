@@ -8,8 +8,6 @@ updateWindow::updateWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("Update Dialog");
     setWindowFlag(Qt::SubWindow);
-
-	waitWindow->moveToThread(&waitThread);
 }
 
 updateWindow::~updateWindow()
@@ -55,6 +53,8 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 
 	this->addLine("Start update...");
 
+	bool isOK = false;
+
 	if (link_mode == HOSTLINK_MODE) {
 		//use sbloader to send OSLoader to calculator RAM.
 		TCHAR* argv[2];
@@ -65,18 +65,24 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 		this->addLine("Finished with code " + QString::number(exitCode) + ".");
 		if (exitCode != 0) {
 			this->addLine("ERROR: Failed to send OS Loader to calculator RAM.");
-			return false;
+			isOK = false;
+			goto update_end;
 		}
 
 		this->addLine("Reboot and reconnect... Please wait. ");
 		//this->addLine("Interval: " + QString::number(REBOOT_INTERVAL) + "ms");
 
 		for (int i = 0; i < REBOOT_RETRY_TIME; i++) {
+			searchForDevices();
+			if (link_mode == EDB_BIN) break;
 			Sleep(REBOOT_INTERVAL);	//reboot interval
-			if (searchForDevices() == EDB_BIN) break;
+
 		}
 
-		if (link_mode != EDB_BIN) return false;
+		if (link_mode != EDB_BIN) {
+			isOK = false;
+			goto update_end;
+		}
 
 		this->addLine("Device found.");
 	}
@@ -91,7 +97,8 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 		}
 		else {
 			this->addLine("ERROR: Can not open EDB connection.");
-			return false;
+			isOK = false;
+			goto update_end;
 		}
 
 		//set up callback function
@@ -105,7 +112,8 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 			ret = fopen_s(&item.f, System_path.toLocal8Bit().data(), "rb");
 			if (ret != 0) {
 				this->addLine("ERROR: Can not open file.");
-				return false;
+				isOK = false;
+				goto update_end;
 			}
 
 			item.filename = System_path.toLocal8Bit().data();
@@ -120,7 +128,8 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 			ret = fopen_s(&item.f, OSLoader_path.toLocal8Bit().data(), "rb");
 			if (ret != 0) {
 				this->addLine("ERROR: Can not open file.");
-				return false;
+				isOK = false;
+				goto update_end;
 			}
 
 			item.filename =OSLoader_path.toLocal8Bit().data();
@@ -131,88 +140,77 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 
 			break;
 		default:
-			return false;
+			isOK = false;
+			goto update_end;
 			break;
 		}
 
 		if (link_mode == EDB_BIN) edb.reset(EDB_MODE_TEXT);
 		if (!edb.ping()) {
 			this->addLine("ERROR: Device no response.");
-			return false;
+			isOK = false;
+			goto update_end;
 		}
 
 		edb.vm_suspend();
 		edb.flash(item, cb);
-		fclose(item.f);
+		std::fclose(item.f);
 
 		this->addLine("Device rebooting...");
 		edb.reboot();
 		edb.close();
 
 		for (int j = 0; j < REBOOT_RETRY_TIME; j++) {
+			searchForDevices();
+			if (link_mode == EDB_BIN) break;
 			Sleep(REBOOT_EDB_INTERVAL);
-			if (searchForDevices() == EDB_BIN) break;
 		}
 	}
 
 	if (link_mode == EDB_BIN) {
 		this->addLine("Done.");
-		return true;
+		isOK = true;
+		goto update_end;
 	}
 	else {
-		return false;
+		isOK = false;
+		goto update_end;
 	}
+
+update_end:
+	return isOK;
 }
 
-bool updateWindow::searchRecoveryModeDevice() {
-	//init libusb
+int updateWindow::searchDevices() {
 	if (libusb_init(nullptr) != 0) {
 		QMessageBox::critical(this, " ", "Can not init libusb!");
+		return UNCONNECT_MODE;
 	}
 
-	struct libusb_device* dev = nullptr;
-	struct libusb_device_handle* dev_hdl = nullptr;
-	struct libusb_device_descriptor dev_dsp;
-	bool isFound = true;
+	int device_count = 0;
+	libusb_device** device_list;
+	libusb_device* device_now;
+	struct libusb_device_descriptor desc;
 
-	dev_hdl = libusb_open_device_with_vid_pid(nullptr, HOSTLINK_VID, HOSTLINK_PID);
+	device_count = libusb_get_device_list(nullptr, &device_list);
 
-	if (dev_hdl != nullptr) {
-		dev = libusb_get_device(dev_hdl);
-		if (libusb_get_device_descriptor(dev, &dev_dsp) != 0) {
-			isFound = false;
-		}
+	if (device_count < 0) return false;
+
+	for (int i = 0; i < device_count; i++) {
+		device_now = device_list[i];
+		libusb_get_device_descriptor(device_now, &desc);
+
+		if (desc.idVendor == HOSTLINK_VID && desc.idProduct == HOSTLINK_PID)	return HOSTLINK_MODE;
+		if (desc.idVendor == EOS_VID && desc.idProduct == EOS_PID)				return EDB_BIN;
+
 	}
-	else {
-		isFound = false;
-	}
 
-	libusb_close(dev_hdl);
-	libusb_exit(nullptr);	//exit libusb
-	return isFound;
+	return UNCONNECT_MODE;
 }
 
+
 int updateWindow::searchForDevices() {
-	waitWindow->show();
-	waitWindow->refresh();
-
-	if (searchRecoveryModeDevice()) {
-		link_mode = HOSTLINK_MODE;
-	}
-	else {
-		//hostlink mode device not found:
-		if (edb.open(EDB_MODE_BIN)) {
-			link_mode = EDB_BIN;
-		}
-		else {
-			link_mode = UNCONNECT_MODE;
-		}
-		edb.close();
-	}
-
-	waitWindow->hide();
-	//ui->pushButton_refresh->setEnabled(true);
-
+	link_mode = searchDevices();
 	return link_mode;
 }
 

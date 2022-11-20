@@ -33,11 +33,9 @@
 #include <sb_loader_DLL.h>
 
 #include <QDialog>
-#include <QThread>
 #include <functional>
 
 #include <time.h>
-#include <wait.h>
 
 
 typedef std::function<void()> callBack;
@@ -52,8 +50,6 @@ class updateWindow : public QDialog
 {
     Q_OBJECT
 
-        QThread waitThread;
-
 public:
     explicit updateWindow(QWidget *parent = nullptr);
     ~updateWindow();
@@ -67,25 +63,19 @@ public:
     
     bool startUpdate(const QList<int>& work, const QString& OSLoader_path, const QString& System_path, const int& page_OSLoader, const int& page_System);
 
-    bool searchRecoveryModeDevice();
+    int searchDevices();
 
     int searchForDevices();
 
     void refreshStatus();
-    
-    void moveWaitWindow(int x, int y) { waitWindow->move(x, y); };
 
 private:
     Ui::updateWindow *ui;
-
-    wait* waitWindow = new wait(this);
 
     //edb things//
     vector<flashImg> imglist;
     EDBInterface edb;
     //////////////
-
-    int edbMode = EDB_BIN;
 
     int link_mode = UNCONNECT_MODE;
 
