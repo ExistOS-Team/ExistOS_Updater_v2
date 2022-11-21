@@ -1,13 +1,13 @@
 #include "updatewindow.h"
 #include "ui_updatewindow.h"
 
-updateWindow::updateWindow(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::updateWindow)
+updateWindow::updateWindow(QWidget* parent) :
+	QDialog(parent),
+	ui(new Ui::updateWindow)
 {
-    ui->setupUi(this);
-    setWindowTitle("Update Dialog");
-    setWindowFlag(Qt::SubWindow);
+	ui->setupUi(this);
+	setWindowTitle("Update Dialog");
+	setWindowFlag(Qt::SubWindow);
 }
 
 updateWindow::~updateWindow()
@@ -107,7 +107,7 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 
 		switch (work.at(i))
 		{
-		case 1:     //update system
+		case UPDATE_SYSTEM:     //update system
 			memset(&item, 0, sizeof(item));
 			ret = fopen_s(&item.f, System_path.toLocal8Bit().data(), "rb");
 			if (ret != 0) {
@@ -122,7 +122,7 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 
 			this->addLine("Flashing system to page " + QString::number(page_System) + ".");
 			break;
-		case 2:     //update OSLoader
+		case UPDATE_OSLOADER:     //update OSLoader
 			memset(&item, 0, sizeof(item));
 
 			ret = fopen_s(&item.f, OSLoader_path.toLocal8Bit().data(), "rb");
@@ -151,7 +151,7 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 			isOK = false;
 			goto update_end;
 		}
-
+		
 		edb.vm_suspend();
 		edb.flash(item, cb);
 		std::fclose(item.f);
@@ -178,6 +178,7 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 	}
 
 update_end:
+	emit sendUpdateStatus(UPDATE_NONE);
 	return isOK;
 }
 
@@ -227,5 +228,15 @@ void updateWindow::refreshStatus() {
 		"Block: " + QString::number(blockNow) +
 		"\n================================");
 	this->refresh();
+}
 
+bool updateWindow::reboot() {
+	if (edb.open(1)) {
+		edb.reboot();
+		edb.close(); 
+		return true;
+	}
+	else {
+		return false;
+	}
 }

@@ -14,7 +14,7 @@
 #define REFRESH_INTERVAL 500
 
 //define texts//
-constexpr auto VERSION                           =     "v1.1.1";
+constexpr auto VERSION                           =     "v1.1.2";
 constexpr auto TEXT_DEVICE_DISCONNECTED          =     "Device Disconnected";
 constexpr auto TEXT_DEVICE_CONNECTED_HOSTLINK    =     "Device Connected [HostLink Mode]";
 constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [EDB Mode]";
@@ -38,7 +38,6 @@ constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [EDB Mo
 #include <about.h>
 #include <updatewindow.h>
 #include <options.h>
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class startWindow; }
@@ -80,10 +79,13 @@ private:
 
     int link_mode = UNCONNECT_MODE;
 
+    int updateStatus = UPDATE_NONE;
+
 private slots:
     void on_button_OSLoader_path_clicked();
     void on_button_System_path_clicked();
     void on_pushButton_about_clicked();
+    void on_pushButton_reboot_clicked();
     void on_pushButton_options_clicked();
     void on_pushButton_update_O_clicked();
     void on_pushButton_update_S_clicked();
@@ -92,6 +94,8 @@ private slots:
     void refreshLinkStatus();
 
     void getReturnData(int OSLoader, int System);
+
+    void getUpdateStatus(int status);
 };
 
 

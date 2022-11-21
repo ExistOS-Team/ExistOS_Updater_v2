@@ -21,6 +21,9 @@
 #define DEFAULT_OSLOADER_PAGE 1408
 #define DEFAULT_SYSTEM_PAGE 1984
 
+#define UPDATE_NONE 0
+#define UPDATE_PROCESSING 1
+
 //EDB includes//
 #include <stdint.h>
 #include "edb/CComHelper.h"
@@ -37,10 +40,9 @@
 
 #include <time.h>
 
-
 typedef std::function<void()> callBack;
 
-extern unsigned long long speed, uploadedSize, pageNow, blockNow, fsize;		//edb status
+extern long long speed, uploadedSize, pageNow, blockNow, fsize;		//edb status
 
 namespace Ui {
 class updateWindow;
@@ -68,6 +70,11 @@ public:
     int searchForDevices();
 
     void refreshStatus();
+
+    bool reboot();
+
+signals:
+    void sendUpdateStatus(int status);
 
 private:
     Ui::updateWindow *ui;

@@ -25,6 +25,7 @@ startWindow::startWindow(QWidget* parent)
 	ui->pushButton_update_O->setDisabled(true);
 	ui->pushButton_update_OandS->setDisabled(true);
 	ui->pushButton_update_S->setDisabled(true);
+	ui->pushButton_reboot->setDisabled(true);
 
 	QFileInfo ini_file;
 	ini_file.setFile("config.ini");
@@ -62,6 +63,8 @@ startWindow::startWindow(QWidget* parent)
 	connect(optionsWindow, SIGNAL(returnData(int, int)), this, SLOT(getReturnData(int, int)));
 
 	updWindow->moveToThread(&deviceUpdateThread);
+
+	connect(updWindow, SIGNAL(sendUpdateStatus(int)), this, SLOT(getUpdateStatus(int)));
 
 	refresh_timer->setInterval(REFRESH_INTERVAL);
 
@@ -168,7 +171,7 @@ void startWindow::on_pushButton_update_S_clicked()
 {
 	if (link_mode == HOSTLINK_MODE) {
 		if (ui->OSLoader_path->text() == "") {
-			QMessageBox::information(this, " ", "In HostLink mode,\nyou need to select an OS Loader file for updating.");
+			QMessageBox::information(this, " ", "In HostLink mode, you need to select an OS Loader file for updating.");
 			return;
 		}
 	}
@@ -201,18 +204,24 @@ void startWindow::on_pushButton_update_OandS_clicked()
 }
 
 void startWindow::setStatus(int mode){
+	link_mode = mode;
 	switch (mode)
 	{
 	case HOSTLINK_MODE:
 		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_HOSTLINK);
+		ui->pushButton_reboot->setDisabled(true);
 		setButtonStatus(true, true, true);
 		break;
 	case EDB_BIN:
 		ui->lineEdit_status->setText(TEXT_DEVICE_CONNECTED_EDB_BIN);
+		if (updateStatus == UPDATE_NONE) {
+			ui->pushButton_reboot->setEnabled(true);
+		}
 		setButtonStatus(true, true, true);
 		break;
 	case UNCONNECT_MODE:
 		ui->lineEdit_status->setText(TEXT_DEVICE_DISCONNECTED);
+		ui->pushButton_reboot->setDisabled(true);
 		setButtonStatus(false, false, false);
 		break;
 	default:
@@ -221,11 +230,25 @@ void startWindow::setStatus(int mode){
 }
 
 void startWindow::updateDevice(const QList<int>& work) {
+	ui->pushButton_reboot->setDisabled(true);
+	updateStatus = UPDATE_PROCESSING;
 	if (updWindow->startUpdate(work, ui->OSLoader_path->text(), ui->System_path->text(), page_OSLoader, page_System)) {
 		QMessageBox::information(this, " ", "Update device successfully.\n\nIt is safe and recommended to disconnect your calculator now.");
 	}
 	else {
 		QMessageBox::critical(this, " ", "Update device failed.\n\nAn error occurred while updating device.");
 	}
+}
 
+void startWindow::on_pushButton_reboot_clicked() {
+	if (updWindow->reboot()) {
+		ui->pushButton_reboot->setDisabled(true);
+	}
+	else {
+		QMessageBox::critical(this, " ", "Command send failed.\n\nPlease check your connection.");
+	}
+}
+
+void startWindow::getUpdateStatus(int status) {
+	updateStatus = status;
 }

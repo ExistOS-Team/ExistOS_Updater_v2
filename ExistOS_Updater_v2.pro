@@ -14,6 +14,7 @@ SOURCES += \
     edb/CComHelper.cpp \
     edb/EDBInterface.cpp \
     edb/WinReg.cpp \
+    flashinginfo.cpp \
     main.cpp \
     options.cpp \
     startwindow.cpp \
@@ -25,6 +26,7 @@ HEADERS += \
     edb/CComHelper.h \
     edb/EDBInterface.h \
     edb/WinReg.h \
+    flashinginfo.h \
     libusb/libusb.h \
     options.h \
     startwindow.h \
@@ -33,6 +35,7 @@ HEADERS += \
 
 FORMS += \
     about.ui \
+    flashinginfo.ui \
     options.ui \
     startwindow.ui \
     updatewindow.ui \
