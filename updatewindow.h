@@ -14,15 +14,20 @@
 #define HOSTLINK_VID 0x066F
 #define HOSTLINK_PID 0x3770
 
-#define REBOOT_INTERVAL 4000
+#define REBOOT_INTERVAL 2000
 #define REBOOT_EDB_INTERVAL 3000
-#define REBOOT_RETRY_TIME 3
+#define REBOOT_RETRY_TIME 4
 
 #define DEFAULT_OSLOADER_PAGE 1408
 #define DEFAULT_SYSTEM_PAGE 1984
 
 #define UPDATE_NONE 0
 #define UPDATE_PROCESSING 1
+
+#define UPDATE_NONE 0
+#define UPDATE_PROCESSING 1
+#define UPDATE_FLASHING_SYSTEM 2
+#define UPDATE_FLASHING_OSLOADER 3
 
 //EDB includes//
 #include <stdint.h>
@@ -42,7 +47,7 @@
 
 typedef std::function<void()> callBack;
 
-extern long long speed, uploadedSize, pageNow, blockNow, fsize;		//edb status
+extern unsigned long long speed, uploadedSize, pageNow, blockNow, fsize;		//edb status
 
 namespace Ui {
 class updateWindow;

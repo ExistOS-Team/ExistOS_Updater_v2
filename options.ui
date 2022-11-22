@@ -46,7 +46,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Page Settings</string>
+         <string>EDB Flashing Settings</string>
         </property>
        </widget>
       </item>
@@ -55,7 +55,7 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>OS Loader:</string>
+           <string>OSLoader page:</string>
           </property>
          </widget>
         </item>
@@ -76,7 +76,7 @@
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>System:</string>
+           <string>System page:</string>
           </property>
          </widget>
         </item>
@@ -100,13 +100,6 @@
        </widget>
       </item>
      </layout>
-    </item>
-    <item>
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
     </item>
     <item>
      <spacer name="verticalSpacer">

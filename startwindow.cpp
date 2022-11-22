@@ -46,14 +46,23 @@ startWindow::startWindow(QWidget* parent)
 	else {
 		if (ini->value(tr("/Statu/savePath")) == true) {
 			QStringList path;
+			QFileInfo tmp;
 			path.append(ini->value(tr("/Path/osloader")).toString());
 			path.append(ini->value(tr("/Path/system")).toString());
 
 			if (path.at(0) != "") {
-				if (QFileInfo(path.at(0)).exists()) ui->OSLoader_path->setText(path.at(0));
+				tmp.setFile(path.at(0));
+				if (tmp.exists()) {
+					ui->OSLoader_path->setText(path.at(0));
+					size_OSLoader = tmp.size();
+				}
 			}
 			if (path.at(1) != "") {
-				if (QFileInfo(path.at(1)).exists()) ui->System_path->setText(path.at(1));
+				tmp.setFile(path.at(1));
+				if (tmp.exists()) {
+					ui->System_path->setText(path.at(1));
+					size_System = tmp.size();
+				}
 			}
 
 			ui->checkBox_remember_path->setChecked(true);
@@ -72,6 +81,9 @@ startWindow::startWindow(QWidget* parent)
 
 	refresh_timer->start();
 
+	flashInfoWindow->moveToThread(&infoWindowThread);
+
+	//flashInfoWindow->show();
 }
 
 startWindow::~startWindow()
@@ -96,18 +108,22 @@ startWindow::~startWindow()
 	delete aboutWindow;
 	delete updWindow;
 	delete optionsWindow;
+	delete flashInfoWindow;
 }
 
 
 
 void startWindow::on_button_OSLoader_path_clicked()
 {
-	ui->OSLoader_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("OS Loader File(*.sb)")));
+	ui->OSLoader_path->setText(QFileDialog::getOpenFileName(this, tr("Select a file"), tr(""), tr("OSLoader File(*.sb)")));
 	if (ui->OSLoader_path->text() != "") {
 		QFileInfo* info = new QFileInfo(ui->OSLoader_path->text());
 		if (info->size() > (page_System - page_OSLoader) * 2112) {
-			QMessageBox::warning(this, " ", "This OS Loader file is too large to flash.");
+			QMessageBox::warning(this, " ", "This OSLoader file is too large to flash.");
 			ui->OSLoader_path->clear();
+		}
+		else {
+			size_OSLoader = info->size();
 		}
 		delete info;
 	}
@@ -122,6 +138,9 @@ void startWindow::on_button_System_path_clicked()
 		if (info->size() > (MAX_PAGE - page_System) * 2112) {
 			QMessageBox::warning(this, " ", "This System file is too large to flash.");
 			ui->System_path->clear();
+		}
+		else {
+			size_System = info->size();
 		}
 		delete info;
 	}
@@ -158,7 +177,7 @@ void startWindow::getReturnData(int OSLoader, int System) {
 void startWindow::on_pushButton_update_O_clicked()
 {
 	if (ui->OSLoader_path->text() == "") {
-		QMessageBox::critical(this, " ", "You have to select a file for OS Loader first.");
+		QMessageBox::critical(this, " ", "You have to select a file for OSLoader first.");
 	}
 	else {
 		setButtonStatus(false, false, false);
@@ -171,7 +190,7 @@ void startWindow::on_pushButton_update_S_clicked()
 {
 	if (link_mode == HOSTLINK_MODE) {
 		if (ui->OSLoader_path->text() == "") {
-			QMessageBox::information(this, " ", "In HostLink mode, you need to select an OS Loader file for updating.");
+			QMessageBox::information(this, " ", "In HostLink mode, you need to select an OSLoader file for updating.");
 			return;
 		}
 	}
@@ -189,7 +208,7 @@ void startWindow::on_pushButton_update_S_clicked()
 void startWindow::on_pushButton_update_OandS_clicked()
 {
 	if (ui->OSLoader_path->text() == "") {
-		QMessageBox::critical(this, " ", "You have to select a file for OS Loader first.");
+		QMessageBox::critical(this, " ", "You have to select a file for OSLoader first.");
 	}
 	else {
 		if (ui->System_path->text() == "") {
@@ -231,13 +250,21 @@ void startWindow::setStatus(int mode){
 
 void startWindow::updateDevice(const QList<int>& work) {
 	ui->pushButton_reboot->setDisabled(true);
+	setButtonStatus(false, false, false);
+
+	flashInfoWindow->timer_start(10);
+	flashInfoWindow->move(this->x() + 330, this->y());
+	updWindow->move(this->x() + 330, this->y() + 260);
+
 	updateStatus = UPDATE_PROCESSING;
 	if (updWindow->startUpdate(work, ui->OSLoader_path->text(), ui->System_path->text(), page_OSLoader, page_System)) {
-		QMessageBox::information(this, " ", "Update device successfully.\n\nIt is safe and recommended to disconnect your calculator now.");
+		QMessageBox::information(this, " ", "Update device successfully.\n\nIt is now safe and recommended to disconnect your calculator.");
 	}
 	else {
 		QMessageBox::critical(this, " ", "Update device failed.\n\nAn error occurred while updating device.");
 	}
+	flashInfoWindow->timer_stop();
+	flashInfoWindow->hide();
 }
 
 void startWindow::on_pushButton_reboot_clicked() {
@@ -251,4 +278,27 @@ void startWindow::on_pushButton_reboot_clicked() {
 
 void startWindow::getUpdateStatus(int status) {
 	updateStatus = status;
+	int tmp_size;
+	switch (updateStatus)
+	{
+	case UPDATE_FLASHING_OSLOADER:
+		tmp_size = size_OSLoader;
+		break;
+
+	case UPDATE_FLASHING_SYSTEM:
+		tmp_size = size_System;
+		break;
+
+	default:
+		tmp_size = 1;
+		break;
+	}
+	flashInfoWindow->refreshBasicInfo(flashInfoText.at(updateStatus), tmp_size);
+	if (updateStatus == UPDATE_NONE || updateStatus == UPDATE_PROCESSING) {
+		if(flashInfoWindow->isVisible()) flashInfoWindow->hide();
+	}
+	else {
+		if (flashInfoWindow->isHidden()) flashInfoWindow->show();
+	}
+
 }

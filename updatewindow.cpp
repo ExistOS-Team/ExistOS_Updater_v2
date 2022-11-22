@@ -6,8 +6,8 @@ updateWindow::updateWindow(QWidget* parent) :
 	ui(new Ui::updateWindow)
 {
 	ui->setupUi(this);
+	setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint);
 	setWindowTitle("Update Dialog");
-	setWindowFlag(Qt::SubWindow);
 }
 
 updateWindow::~updateWindow()
@@ -51,7 +51,7 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 	this->setProgressBarVisible(false);
 	this->show();
 
-	this->addLine("Start update...");
+	this->addLine("Starting update...");
 
 	bool isOK = false;
 
@@ -132,7 +132,7 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 				goto update_end;
 			}
 
-			item.filename =OSLoader_path.toLocal8Bit().data();
+			item.filename = OSLoader_path.toLocal8Bit().data();
 			item.toPage = page_OSLoader;
 			item.bootImg = true;
 
@@ -144,6 +144,8 @@ bool updateWindow::startUpdate(const QList<int>& work, const QString &OSLoader_p
 			goto update_end;
 			break;
 		}
+
+		emit sendUpdateStatus(work.at(i) + 1);
 
 		if (link_mode == EDB_BIN) edb.reset(EDB_MODE_TEXT);
 		if (!edb.ping()) {
@@ -216,18 +218,9 @@ int updateWindow::searchForDevices() {
 }
 
 void updateWindow::refreshStatus() {
-	this->clear();
-	int per = int((double(uploadedSize) / double(fsize)) * 100);
-	this->setProgressBarValue(per);
-	this->setWindowTitle("Flashing...");
-	this->addLine(
-		"\n================================\nSpeed: " +
-		QString::number(speed) + "KB/s\n" +
-		"Uploaded Size: " + QString::number(uploadedSize) + "\n" +
-		"Page: " + QString::number(pageNow) + "\n" +
-		"Block: " + QString::number(blockNow) +
-		"\n================================");
-	this->refresh();
+	qApp->processEvents();
+	//callback function
+	//just for process events :)
 }
 
 bool updateWindow::reboot() {

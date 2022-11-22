@@ -7,7 +7,7 @@
 using namespace std;
 
 
-long long speed, uploadedSize, pageNow, blockNow, fsize;
+unsigned long long speed, uploadedSize, pageNow, blockNow, fsize;
 
 long long getTime()
 {

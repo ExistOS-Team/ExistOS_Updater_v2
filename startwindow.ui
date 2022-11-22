@@ -53,6 +53,9 @@
            <bold>true</bold>
           </font>
          </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
          </property>
@@ -75,12 +78,15 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>OS Loader:</string>
+          <string>OSLoader: </string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLineEdit" name="OSLoader_path">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="readOnly">
           <bool>true</bool>
          </property>
@@ -118,6 +124,9 @@
        </item>
        <item>
         <widget class="QLineEdit" name="System_path">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="readOnly">
           <bool>true</bool>
          </property>
@@ -235,7 +244,7 @@
            <item>
             <widget class="QPushButton" name="pushButton_update_O">
              <property name="text">
-              <string>Update OS Loader</string>
+              <string>Update OSLoader</string>
              </property>
             </widget>
            </item>
@@ -381,7 +390,7 @@
            <item>
             <widget class="QPushButton" name="pushButton_update_OandS">
              <property name="text">
-              <string>Update OS Loader &amp;&amp; System</string>
+              <string>Update OSLoader &amp;&amp; System</string>
              </property>
             </widget>
            </item>

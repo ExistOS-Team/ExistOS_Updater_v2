@@ -38,6 +38,7 @@ constexpr auto TEXT_DEVICE_CONNECTED_EDB_BIN     =     "Device Connected [EDB Mo
 #include <about.h>
 #include <updatewindow.h>
 #include <options.h>
+#include <infowindow.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class startWindow; }
@@ -47,7 +48,7 @@ class startWindow : public QMainWindow
 {
     Q_OBJECT
 
-        QThread deviceUpdateThread;
+        QThread deviceUpdateThread, infoWindowThread;
         
 public:
     startWindow(QWidget *parent = nullptr);
@@ -69,13 +70,19 @@ private:
     About* aboutWindow = new About(this);
     updateWindow* updWindow = new updateWindow(this);
     Options* optionsWindow = new Options(this);
+    infoWindow* flashInfoWindow = new infoWindow(this);
 
     QSettings* ini = new QSettings("config.ini", QSettings::IniFormat);
 
     QTimer* refresh_timer = new QTimer;
 
+    QStringList flashInfoText = { "None","Waitting","System","OSLoader" };
+
     int page_OSLoader = DEFAULT_OSLOADER_PAGE;
     int page_System = DEFAULT_SYSTEM_PAGE;
+
+    int size_OSLoader = 1;
+    int size_System = 1;
 
     int link_mode = UNCONNECT_MODE;
 
@@ -96,6 +103,7 @@ private slots:
     void getReturnData(int OSLoader, int System);
 
     void getUpdateStatus(int status);
+
 };
 
 
